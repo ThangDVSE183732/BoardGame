@@ -1,0 +1,83 @@
+.card {
+  width: 160px;
+  height: 220px;
+  perspective: 1000px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  margin: 8px;
+  filter: drop-shadow(0 8px 15px rgba(0, 0, 0, 0.6));
+}
+
+.card.playable:hover {
+  transform: translateY(-15px) scale(1.08) rotate(-2deg);
+  filter: 
+    drop-shadow(0 12px 25px rgba(0, 0, 0, 0.8))
+    drop-shadow(0 0 15px rgba(212, 175, 55, 0.5));
+}
+
+.card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 14px;
+  box-shadow: 
+    0 8px 16px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+  background: 
+    linear-gradient(135deg, #3e2723 0%, #2c1810 100%);
+  border: 3px solid #8b6914;
+  transform-style: preserve-3d;
+}
+
+.card.playable .card-inner {
+  border-color: #d4af37;
+  box-shadow: 
+    0 8px 16px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 0 15px rgba(212, 175, 55, 0.4);
+}
+
+.card-inner::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 10px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: relative;
+  z-index: 1;
+}
+
+.card-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px;
+  background: 
+    linear-gradient(to top, rgba(44, 24, 16, 0.95), rgba(44, 24, 16, 0.7), transparent);
+  z-index: 2;
+}
+
+.card-title {
+  color: #ffd700;
+  font-weight: bold;
+  font-size: 15px;
+  text-align: center;
+  text-shadow: 
+    2px 2px 4px rgba(0, 0, 0, 0.9),
+    0 0 8px rgba(255, 215, 0, 0.5);
+  font-family: 'Georgia', serif;
+  letter-spacing: 0.5px;
+}
