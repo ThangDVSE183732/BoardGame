@@ -1,69 +1,45 @@
 // CHƯƠNG 5 CNXH KHOA HỌC - BOARD GAME LOGIC
 
-// Định nghĩa 20 thẻ tình huống chia thành 3 nhóm
+// Định nghĩa 16 lá bài - mỗi lá có chỉ số effects riêng
 const SITUATION_CARDS = [
-  // NHÓM A: Giai cấp và tầng lớp xã hội (tác động mạnh đến CB)
-  { id: 1, group: 'A', image: '1.png', title: 'Phân hóa thu nhập', description: 'Khoảng cách giàu nghèo gia tăng trong xã hội.' },
-  { id: 2, group: 'A', image: '2.png', title: 'Lợi ích tư nhân', description: 'Xuất hiện nhóm lợi ích mạnh trong kinh tế.' },
-  { id: 3, group: 'A', image: '3.png', title: 'Quyền lực trí thức', description: 'Tầng lớp trí thức yêu cầu quyền tự chủ cao hơn.' },
-  { id: 4, group: 'A', image: '4.png', title: 'Công nhân thất nghiệp', description: 'Tỷ lệ thất nghiệp trong công nhân tăng cao.' },
-  { id: 5, group: 'A', image: '5.png', title: 'Nông dân đô thị hóa', description: 'Làn sóng di cư từ nông thôn ra thành thị.' },
-  { id: 6, group: 'A', image: '6.png', title: 'Tầng lớp trung lưu', description: 'Sự hình thành tầng lớp trung lưu mới.' },
-  { id: 7, group: 'A', image: '1.png', title: 'Phúc lợi xã hội', description: 'Yêu cầu tăng cường chính sách phúc lợi xã hội.' },
+  { id: 1, image: '1.png', title: 'Phân hóa thu nhập', effects: { CB: -2, DK: 0, ON: -1 } },
+  { id: 2, image: '2.png', title: 'Lợi ích tư nhân', effects: { CB: -1, DK: -1, ON: 0 } },
+  { id: 3, image: '3.png', title: 'Quyền lực trí thức', effects: { CB: 0, DK: 1, ON: -1 } },
+  { id: 4, image: '4.png', title: 'Công nhân thất nghiệp', effects: { CB: -2, DK: -1, ON: 0 } },
+  { id: 5, image: '5.png', title: 'Nông dân đô thị hóa', effects: { CB: -1, DK: 0, ON: -1 } },
+  { id: 6, image: '6.png', title: 'Tầng lớp trung lưu', effects: { CB: 1, DK: 1, ON: 0 } },
   
-  // NHÓM B: Liên minh giai cấp (tác động mạnh đến LM)
-  { id: 8, group: 'B', image: '2.png', title: 'Đối t화 giai cấp', description: 'Mâu thuẫn giữa công nhân và doanh nhân gia tăng.' },
-  { id: 9, group: 'B', image: '3.png', title: 'Đoàn kết dân tộc', description: 'Cần tăng cường đoàn kết giữa các dân tộc.' },
-  { id: 10, group: 'B', image: '4.png', title: 'Liên minh công - nông', description: 'Mối liên kết giữa công nhân và nông dân yếu đi.' },
-  { id: 11, group: 'B', image: '5.png', title: 'Trí thức và nhân dân', description: 'Khoảng cách giữa trí thức và đại chúng.' },
-  { id: 12, group: 'B', image: '6.png', title: 'Đảng và quần chúng', description: 'Mối liên hệ giữa đảng và nhân dân cần củng cố.' },
-  { id: 13, group: 'B', image: '1.png', title: 'Tổ chức chính trị - xã hội', description: 'Vai trò của các tổ chức quần chúng cần được tăng cường.' },
-  { id: 14, group: 'B', image: '2.png', title: 'Đồng thuận xã hội', description: 'Cần xây dựng sự đồng thuận trong xã hội.' },
+  { id: 7, image: '1.png', title: 'Đối thoại giai cấp', effects: { CB: 0, DK: -2, ON: -1 } },
+  { id: 8, image: '2.png', title: 'Đoàn kết dân tộc', effects: { CB: 1, DK: 2, ON: 0 } },
+  { id: 9, image: '3.png', title: 'Liên minh công - nông', effects: { CB: 0, DK: 1, ON: 1 } },
+  { id: 10, image: '4.png', title: 'Trí thức và nhân dân', effects: { CB: -1, DK: -1, ON: 0 } },
+  { id: 11, image: '5.png', title: 'Đảng và quần chúng', effects: { CB: 1, DK: 1, ON: 1 } },
   
-  // NHÓM C: Cơ cấu xã hội tổng hợp (tác động mạnh đến ON)
-  { id: 15, group: 'C', image: '3.png', title: 'Tái cơ cấu kinh tế', description: 'Chuyển đổi mô hình kinh tế ảnh hưởng cơ cấu xã hội.' },
-  { id: 16, group: 'C', image: '4.png', title: 'Quản lý xã hội', description: 'Hệ thống quản lý xã hội cần được hiện đại hóa.' },
-  { id: 17, group: 'C', image: '5.png', title: 'Pháp luật và trật tự', description: 'Yêu cầu tăng cường pháp quyền và kỷ cương.' },
-  { id: 18, group: 'C', image: '6.png', title: 'Dịch vụ công', description: 'Nhu cầu về dịch vụ công tăng cao.' },
-  { id: 19, group: 'C', image: '1.png', title: 'Hiện đại hóa', description: 'Quá trình hiện đại hóa đang tác động mạnh.' },
-  { id: 20, group: 'C', image: '2.png', title: 'Đô thị hóa', description: 'Tốc độ đô thị hóa nhanh đòi hỏi điều chỉnh.' },
+  { id: 12, image: '6.png', title: 'Tái cơ cấu kinh tế', effects: { CB: -1, DK: 0, ON: -2 } },
+  { id: 13, image: '1.png', title: 'Quản lý xã hội', effects: { CB: 0, DK: 0, ON: 2 } },
+  { id: 14, image: '2.png', title: 'Pháp luật và trật tự', effects: { CB: 0, DK: -1, ON: 2 } },
+  { id: 15, image: '3.png', title: 'Hiện đại hóa', effects: { CB: 1, DK: 0, ON: -1 } },
+  { id: 16, image: '4.png', title: 'Đô thị hóa', effects: { CB: -1, DK: -1, ON: -1 } },
 ];
 
-// Định nghĩa 3 phương án cố định cho mọi thẻ
-const OPTIONS = {
-  A: { 
-    name: 'Dung hòa', 
-    effects: { LM: 1, CB: 1, ON: -1 },
-    description: 'Tạo sự hòa giải giữa các bên, tăng liên minh và cân bằng nhưng giảm ổn định.'
-  },
-  B: { 
-    name: 'Ưu tiên', 
-    effects: { LM: -1, CB: 2, ON: 0 },
-    description: 'Ưu tiên giải quyết lợi ích một nhóm, tăng cân bằng nhưng giảm liên minh.'
-  },
-  C: { 
-    name: 'Áp đặt', 
-    effects: { LM: -1, CB: -1, ON: 2 },
-    description: 'Áp đặt quyết định từ trên xuống, tăng ổn định nhưng giảm liên minh và cân bằng.'
-  },
-};
+// Xóa hàm applyGroupBonus và OPTIONS vì không còn sử dụng
 
 // Định nghĩa 3 phương án ĐIỀU CHỈNH có giới hạn (tối đa 3 lần/game)
 const ADJUSTMENTS = {
   A: { 
     name: 'Điều chỉnh phân phối', 
     effects: { CB: 2, DK: -1, ON: 0 },
-    description: 'Giải quyết lợi ích nhưng dễ gây phản ứng xã hội'
+    description: 'CB +2 và ĐK −1'
   },
   B: { 
     name: 'Củng cố liên minh giai cấp', 
     effects: { DK: 2, CB: -1, ON: 0 },
-    description: 'Tăng đồng thuận nhưng phải hy sinh lợi ích'
+    description: 'ĐK +2 và CB −1'
   },
   C: { 
     name: 'Điều tiết ý thức', 
     effects: { CB: 1, DK: 1, ON: -1 },
-    description: 'Thuyết phục – giáo dục nhưng không tạo ra thay đổi vật chất tức thì'
+    description: '+1 vào CB và ĐK, ỔN -1'
   },
 };
 
@@ -75,29 +51,6 @@ function shuffleDeck(deck) {
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
   return shuffled;
-}
-
-
-// Áp dụng hệ số nhóm thẻ
-function applyGroupBonus(card, effects) {
-  const bonusEffects = { ...effects };
-  
-  // Nhóm A: khuếch đại tác động CB
-  if (card.group === 'A' && effects.CB !== 0) {
-    bonusEffects.CB += effects.CB > 0 ? 1 : -1;
-  }
-  
-  // Nhóm B: khuếch đại tác động DK
-  if (card.group === 'B' && effects.DK !== 0) {
-    bonusEffects.DK += effects.DK > 0 ? 1 : -1;
-  }
-  
-  // Nhóm C: khuếch đại tác động ON
-  if (card.group === 'C' && effects.ON !== 0) {
-    bonusEffects.ON += effects.ON > 0 ? 1 : -1;
-  }
-  
-  return bonusEffects;
 }
 
 // Kiểm tra và xử lý trạng thái LỆCH LỢI ÍCH
@@ -151,7 +104,7 @@ function determineEnding(indicators, imbalanceState) {
   const { CB, DK, ON } = indicators;
   
   // Ending 4: KHỦNG HOẢNG CƠ CẤU
-  if (ON === 0 || (CB === 0 && DK === 0) || (CB <= 1 && DK <= 1)) {
+  if (ON === 0 || (CB <= 0 && DK <= 0) || (CB <= 1 && DK <= 1)) {
     return {
       type: 'crisis',
       title: 'ENDING 4: KHỦNG HOẢNG CƠ CẤU',
@@ -228,7 +181,7 @@ export const CardGame = {
     // Đã dùng điều chỉnh trong lượt này chưa
     usedAdjustmentThisTurn: false,
     
-    // Lượt chơi hiện tại (1-12)
+    // Lượt chơi hiện tại (1-10)
     currentTurn: 1,
     
     // Lịch sử các lựa chọn
@@ -261,29 +214,38 @@ export const CardGame = {
     chooseOption: ({ G, events }, optionKey) => {
       if (G.phase !== 'choose' || !G.currentCard) return;
       
-      const option = OPTIONS[optionKey];
+      // Kiểm tra giới hạn điều chỉnh
+      if (G.adjustmentsLeft <= 0) return;
+      if (G.usedAdjustmentThisTurn) return;
+      
+      const option = ADJUSTMENTS[optionKey];
       const card = G.currentCard;
       
-      // Tính toán effects với hệ số nhóm
-      const effects = applyGroupBonus(card, option.effects);
+      // Tính tổng effects = card.effects + option.effects
+      const totalEffects = {
+        CB: (card.effects.CB || 0) + (option.effects.CB || 0),
+        DK: (card.effects.DK || 0) + (option.effects.DK || 0),
+        ON: (card.effects.ON || 0) + (option.effects.ON || 0),
+      };
+      
+      // Giảm số lần điều chỉnh và đánh dấu đã dùng trong lượt này
+      G.adjustmentsLeft -= 1;
+      G.usedAdjustmentThisTurn = true;
       
       // Áp dụng effects lên indicators (max = 10)
-      G.indicators.CB = Math.max(0, Math.min(10, G.indicators.CB + (effects.CB || 0)));
-      G.indicators.DK = Math.max(0, Math.min(10, G.indicators.DK + (effects.DK || 0)));
-      G.indicators.ON = Math.max(0, Math.min(10, G.indicators.ON + (effects.ON || 0)));
+      G.indicators.CB = Math.max(0, Math.min(10, G.indicators.CB + totalEffects.CB));
+      G.indicators.DK = Math.max(0, Math.min(10, G.indicators.DK + totalEffects.DK));
+      G.indicators.ON = Math.max(0, Math.min(10, G.indicators.ON + totalEffects.ON));
       
       // Kiểm tra nếu đang ở trạng thái lệch
-      // LỆCH LỢI ÍCH: Mỗi lần tăng CB sẽ thành +0
-      if (G.imbalanceState === 'LI' && effects.CB > 0) {
-        G.indicators.CB -= effects.CB;
+      if (G.imbalanceState === 'LI' && totalEffects.CB > 0) {
+        G.indicators.CB -= totalEffects.CB;
       }
-      // LỆCH HÌNH THỨC LIÊN MINH: Mỗi lần tăng DK sẽ thành +0
-      if (G.imbalanceState === 'HTLM' && effects.DK > 0) {
-        G.indicators.DK -= effects.DK;
+      if (G.imbalanceState === 'HTLM' && totalEffects.DK > 0) {
+        G.indicators.DK -= totalEffects.DK;
       }
-      // ỔN ĐỊNH BỀ NGOÀI: Không được tăng ON
-      if (G.imbalanceState === 'ODBN' && effects.ON > 0) {
-        G.indicators.ON -= effects.ON;
+      if (G.imbalanceState === 'ODBN' && totalEffects.ON > 0) {
+        G.indicators.ON -= totalEffects.ON;
       }
       
       // Lưu thẻ vào playedCards
@@ -294,11 +256,13 @@ export const CardGame = {
         turn: G.currentTurn,
         card: card,
         option: optionKey,
-        effects: effects,
+        cardEffects: card.effects,
+        optionEffects: option.effects,
+        totalEffects: totalEffects,
         indicators: { ...G.indicators },
       });
       
-      // Kiểm tra game over do chỉ số = 0
+      // Kiểm tra game over
       if (G.indicators.ON === 0) {
         G.ending = {
           type: 'crisis',
@@ -311,21 +275,18 @@ export const CardGame = {
       }
       
       // Kiểm tra các trạng thái lệch
-      // 1. Kiểm tra LỆCH LỢI ÍCH
       if (checkImbalanceLI(G.indicators)) {
         G.imbalanceState = 'LI';
       } else if (G.imbalanceState === 'LI' && canExitImbalanceLI(G.indicators)) {
         G.imbalanceState = 'none';
       }
       
-      // 2. Kiểm tra LỆCH HÌNH THỨC LIÊN MINH
       if (checkImbalanceHTLM(G.indicators)) {
         G.imbalanceState = 'HTLM';
       } else if (G.imbalanceState === 'HTLM' && canExitImbalanceHTLM(G.indicators)) {
         G.imbalanceState = 'none';
       }
       
-      // 3. Kiểm tra ỔN ĐỊNH BỀ NGOÀI
       if (checkImbalanceODBN(G.indicators)) {
         G.imbalanceState = 'ODBN';
       } else if (G.imbalanceState === 'ODBN' && canExitImbalanceODBN(G.indicators)) {
@@ -343,10 +304,10 @@ export const CardGame = {
       
       // Chuyển sang lượt tiếp theo
       G.currentTurn += 1;
-      G.currentCard = null;
+      G.currentCard = null;      G.usedAdjustmentThisTurn = false; // Reset cho lượt mới      G.usedAdjustmentThisTurn = false; // Reset cho lượt mới
       
-      // Kiểm tra kết thúc game sau 12 lượt
-      if (G.currentTurn > 12) {
+      // Kiểm tra kết thúc game sau 10 lượt
+      if (G.currentTurn > 10) {
         G.ending = determineEnding(G.indicators, G.imbalanceState);
         events.endGame();
       } else {
@@ -354,25 +315,41 @@ export const CardGame = {
       }
     },
 
-    // Bỏ qua việc chọn phương án (không áp dụng hiệu ứng gì)
+    // Bỏ qua chọn option (chỉ áp dụng effects của card)
     skipChooseOption: ({ G, events }) => {
       if (G.phase !== 'choose' || !G.currentCard) return;
       
       const card = G.currentCard;
       
-      // Lưu thẻ vào playedCards nhưng không áp dụng effects
+      // Chỉ áp dụng effects của card
+      G.indicators.CB = Math.max(0, Math.min(10, G.indicators.CB + (card.effects.CB || 0)));
+      G.indicators.DK = Math.max(0, Math.min(10, G.indicators.DK + (card.effects.DK || 0)));
+      G.indicators.ON = Math.max(0, Math.min(10, G.indicators.ON + (card.effects.ON || 0)));
+      
+      // Kiểm tra nếu đang ở trạng thái lệch
+      if (G.imbalanceState === 'LI' && card.effects.CB > 0) {
+        G.indicators.CB -= card.effects.CB;
+      }
+      if (G.imbalanceState === 'HTLM' && card.effects.DK > 0) {
+        G.indicators.DK -= card.effects.DK;
+      }
+      if (G.imbalanceState === 'ODBN' && card.effects.ON > 0) {
+        G.indicators.ON -= card.effects.ON;
+      }
+      
+      // Lưu thẻ vào playedCards
       G.playedCards.push(card);
       
-      // Lưu lịch sử với option = null
+      // Lưu lịch sử
       G.history.push({
         turn: G.currentTurn,
         card: card,
         option: null,
-        effects: { CB: 0, DK: 0, ON: 0 },
+        cardEffects: card.effects,
         indicators: { ...G.indicators },
       });
       
-      // Kiểm tra game over do chỉ số = 0
+      // Kiểm tra game over
       if (G.indicators.ON === 0) {
         G.ending = {
           type: 'crisis',
@@ -385,21 +362,18 @@ export const CardGame = {
       }
       
       // Kiểm tra các trạng thái lệch
-      // 1. Kiểm tra LỆCH LỢI ÍCH
       if (checkImbalanceLI(G.indicators)) {
         G.imbalanceState = 'LI';
       } else if (G.imbalanceState === 'LI' && canExitImbalanceLI(G.indicators)) {
         G.imbalanceState = 'none';
       }
       
-      // 2. Kiểm tra LỆCH HÌNH THỨC LIÊN MINH
       if (checkImbalanceHTLM(G.indicators)) {
         G.imbalanceState = 'HTLM';
       } else if (G.imbalanceState === 'HTLM' && canExitImbalanceHTLM(G.indicators)) {
         G.imbalanceState = 'none';
       }
       
-      // 3. Kiểm tra ỔN ĐỊNH BỀ NGOÀI
       if (checkImbalanceODBN(G.indicators)) {
         G.imbalanceState = 'ODBN';
       } else if (G.imbalanceState === 'ODBN' && canExitImbalanceODBN(G.indicators)) {
@@ -418,9 +392,10 @@ export const CardGame = {
       // Chuyển sang lượt tiếp theo
       G.currentTurn += 1;
       G.currentCard = null;
+      G.usedAdjustmentThisTurn = false; // Reset cho lượt mới
       
-      // Kiểm tra kết thúc game sau 12 lượt
-      if (G.currentTurn > 12) {
+      // Kiểm tra kết thúc game sau 10 lượt
+      if (G.currentTurn > 10) {
         G.ending = determineEnding(G.indicators, G.imbalanceState);
         events.endGame();
       } else {
@@ -519,8 +494,8 @@ export const CardGame = {
       G.currentTurn += 1;
       G.currentCard = null;
       
-      // Kiểm tra kết thúc game sau 12 lượt
-      if (G.currentTurn > 12) {
+      // Kiểm tra kết thúc game sau 10 lượt
+      if (G.currentTurn > 10) {
         G.ending = determineEnding(G.indicators, G.imbalanceState);
         events.endGame();
       } else {

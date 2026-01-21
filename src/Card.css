@@ -1,7 +1,7 @@
 /* File: src/Card.css - Đã thu nhỏ */
 .card {
-  width: 80px;
-  height: 110px;
+  width: 70px;
+  height: 98px;
   perspective: 1000px;
   cursor: pointer;
   transition: transform 0.3s ease;

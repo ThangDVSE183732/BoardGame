@@ -46,9 +46,6 @@
   justify-content: space-between;
   align-items: center;
   padding: 4px 15px;
-  background: linear-gradient(135deg, #1a2332 0%, #0f1419 100%);
-  border-bottom: 1px solid rgba(59, 130, 246, 0.2);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
   position: relative;
   z-index: 10;
   margin: -8px -8px 0 -8px;
@@ -138,9 +135,6 @@
   align-items: center;
   gap: 8px;
   padding: 6px 12px;
-  background: rgba(30, 58, 138, 0.4);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  border-radius: 8px;
   min-width: 70px;
 }
 
@@ -182,9 +176,6 @@
   align-items: center;
   gap: 5px;
   padding: 6px 10px;
-  background: rgba(30, 58, 138, 0.3);
-  border: 1px solid rgba(59, 130, 246, 0.25);
-  border-radius: 6px;
 }
 
 .info-icon {
@@ -799,13 +790,14 @@
   gap: 10px;
   position: fixed;
   left: 5%;
-  top: 38%;
+  top: 36%;
   transform: translateY(-50%);
   z-index: 20;
 }
 
 .options-fan {
   position: relative;
+  margin-top: 50px;
 }
 
 /* Card Selection Prompt Banner */
@@ -819,7 +811,7 @@
   font-weight: 600;
   color: #ecf0f1;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  margin: 0 auto 5px auto;
+  margin: 0 auto 40px auto;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(8px);
   max-width: 280px;
@@ -885,8 +877,8 @@
 /* Card Back (mặt úp) */
 .card-back {
   position: absolute;
-  width: 75px;
-  height: 105px;
+  width: 90px;
+  height: 126px;
   background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
   border-radius: 10px;
   border: 2px solid rgba(255, 255, 255, 0.3);
@@ -1385,14 +1377,14 @@
 /* Current Card Horizontal Display */
 .current-card-horizontal {
   margin-top: 0;
-  margin-bottom: 20px;
+  margin-bottom: 0;
   padding: 0;
   background: transparent;
   border-radius: 12px;
   border: none;
   box-shadow: none;
   position: absolute;
-  bottom: 10px;
+  bottom: 8px;
   left: 0;
   right: 0;
   width: 100%;
@@ -1406,11 +1398,11 @@
 .played-cards-container {
   display: flex;
   gap: 8px;
-  padding: 10px 0;
+  padding: 30px 0 2px 0;
   align-items: center;
   justify-content: center;
   position: relative;
-  min-height: 140px;
+  min-height: 154px;
 }
 
 .played-cards-container::-webkit-scrollbar {
@@ -1483,8 +1475,8 @@
 .played-card-item .card {
   margin: 0;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6));
-  width: 100px;
-  height: 140px;
+  width: 110px;
+  height: 154px;
 }
 
 .played-card-item .card-inner {

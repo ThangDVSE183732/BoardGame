@@ -3,7 +3,7 @@ import Card from './Card';
 import './Board.css';
 
 const Board = ({ G, moves }) => {
-  const { indicators, currentCard, phase, currentTurn, imbalanceState, deck, ending, playedCards, adjustmentsLeft, usedAdjustmentThisTurn } = G;
+  const { indicators, currentCard, phase, currentTurn, imbalanceState, deck, ending, playedCards, adjustmentsLeft } = G;
   const [showGuide, setShowGuide] = useState(false);
   const [selectedCardIndex, setSelectedCardIndex] = useState(null);
   
@@ -86,7 +86,7 @@ const Board = ({ G, moves }) => {
               <div className="turn-circle-inner">
                 <span className="turn-current">{currentTurn}</span>
                 <span className="turn-divider">/</span>
-                <span className="turn-total">12</span>
+                <span className="turn-total">10</span>
               </div>
             </div>
             <div className="turn-line"></div>
@@ -104,7 +104,7 @@ const Board = ({ G, moves }) => {
               <span className="info-value">{adjustmentsLeft}/3</span>
             </div>
             <button className="settings-button" onClick={() => setShowGuide(true)}>
-              ⚙️
+              📖
             </button>
           </div>
         </div>
@@ -135,17 +135,17 @@ const Board = ({ G, moves }) => {
           <div className="board-frame">
             <div className="board-content">
               
-              {/* Card backs - visible in both draw and choose phase */}
+              {/* Card backs and options - visible in both draw and choose phase */}
               {(phase === 'draw' || phase === 'choose') && (
                 <>
                   {/* Option buttons - always visible on the left */}
                   <div className="options-buttons-left">
                     {[
-                      { key: 'A', name: 'Điều chỉnh phân phối', effects: { CB: 2, DK: -1, ON: 0 }, color: '#9b59b6' },
-                      { key: 'B', name: 'Củng cố liên minh giai cấp', effects: { DK: 2, CB: -1, ON: 0 }, color: '#1abc9c' },
-                      { key: 'C', name: 'Điều tiết ý thức', effects: { CB: 1, DK: 1, ON: -1 }, color: '#e67e22' }
+                      { key: 'A', name: 'ĐIỀU CHỈNH PHÂN PHỐI', effects: { CB: 2, DK: -1, ON: 0 }, color: '#9b59b6' },
+                      { key: 'B', name: 'CỦNG CỐ LIÊN MINH GIAI CẤP', effects: { DK: 2, CB: -1, ON: 0 }, color: '#1abc9c' },
+                      { key: 'C', name: 'ĐIỀU TIẾT Ý THỨC', effects: { CB: 1, DK: 1, ON: -1 }, color: '#e67e22' }
                     ].map((displayData) => {
-                      const isClickable = currentCard && phase === 'choose';
+                      const isClickable = currentCard && phase === 'choose' && adjustmentsLeft > 0;
                       
                       return (
                         <button
@@ -222,13 +222,11 @@ const Board = ({ G, moves }) => {
               <div className="played-cards-container">
                 {playedCards.map((card, index) => (
                   <div key={index} className="played-card-item">
-                    <div className="card-badge-tiny">{card.group}</div>
                     <Card card={card} isPlayable={false} showCost={false} />
                   </div>
                 ))}
                 {currentCard && phase === 'choose' && (
                   <div className="played-card-item current-playing">
-                    <div className="card-badge-tiny">{currentCard.group}</div>
                     <Card card={currentCard} isPlayable={false} showCost={false} />
                   </div>
                 )}
