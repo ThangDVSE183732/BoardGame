@@ -1,11 +1,7 @@
 .game-board {
   height: 100vh; /* Quan trọng: Dùng height thay vì min-height */
   width: 100vw;
-  background: 
-    linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%),
-    radial-gradient(circle at 20% 50%, rgba(230, 126, 34, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(52, 152, 219, 0.1) 0%, transparent 50%);
-  background-attachment: fixed;
+  background: transparent;
   color: #ecf0f1;
   padding: 8px;
   font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
@@ -136,6 +132,10 @@
   gap: 8px;
   padding: 6px 12px;
   min-width: 70px;
+  background: rgba(15, 23, 42, 0.85);
+  border-radius: 15px;
+  border: 2px solid rgba(59, 130, 246, 0.5);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6), 0 0 20px rgba(59, 130, 246, 0.3);
 }
 
 .stat-icon {
@@ -176,6 +176,10 @@
   align-items: center;
   gap: 5px;
   padding: 6px 10px;
+  background: rgba(15, 23, 42, 0.85);
+  border-radius: 15px;
+  border: 2px solid rgba(148, 163, 184, 0.5);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
 }
 
 .info-icon {
@@ -684,18 +688,62 @@
 /* Card Selection Prompt Banner */
 .card-selection-prompt {
   text-align: center;
-  padding: 18px 60px;
-  background: rgba(30, 60, 114, 0.5);
-  border: 2px solid rgba(52, 152, 219, 0.5);
-  border-radius: 50px;
-  font-size: 20px;
+  padding: 12px 50px;
+  background: linear-gradient(135deg, rgba(30, 60, 114, 0.6), rgba(41, 128, 185, 0.5));
+  border: 2px solid rgba(52, 152, 219, 0.6);
+  border-radius: 30px;
+  font-size: 18px;
   font-weight: 600;
-  color: #ecf0f1;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  color: #fff;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
   margin: 0 auto 25px auto;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(8px);
-  max-width: 500px;
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  max-width: 480px;
+  transition: all 0.4s ease;
+  letter-spacing: 0.5px;
+}
+
+.card-selection-prompt.imbalance-state {
+  background: linear-gradient(135deg, rgba(169, 30, 30, 0.85), rgba(211, 47, 47, 0.8));
+  border: 2px solid rgba(211, 47, 47, 0.95);
+  box-shadow: 
+    0 4px 25px rgba(211, 47, 47, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 0 35px rgba(211, 47, 47, 0.4);
+  animation: pulse-warning 2s ease-in-out infinite;
+}
+
+@keyframes pulse-warning {
+  0%, 100% { 
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% { 
+    transform: scale(1.02);
+    filter: brightness(1.1);
+  }
+}
+
+.card-selection-prompt .imbalance-icon {
+  display: inline-block;
+  font-size: 20px;
+  margin-right: 6px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+  animation: warning-pulse 1s ease-in-out infinite;
+}
+
+@keyframes warning-pulse {
+  0%, 100% { 
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% { 
+    transform: scale(1.15);
+    opacity: 0.85;
+  }
 }
 
 .phase-icon {
@@ -804,16 +852,16 @@
 .card-selection-prompt {
   text-align: center;
   padding: 8px 25px;
-  background: rgba(30, 60, 114, 0.5);
-  border: 2px solid rgba(52, 152, 219, 0.5);
+  background: rgba(15, 23, 42, 0.95);
+  border: 3px solid rgba(52, 152, 219, 0.8);
   border-radius: 50px;
   font-size: 14px;
   font-weight: 600;
   color: #ecf0f1;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
   margin: 0 auto 40px auto;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7), 0 0 30px rgba(52, 152, 219, 0.5);
+  backdrop-filter: blur(10px);
   max-width: 280px;
   order: 1;
   position: relative;
@@ -1010,11 +1058,11 @@
 .option-btn-vertical {
   width: 110px;
   padding: 0;
-  border: 2px solid rgba(255, 255, 255, 0.4);
+  border: 3px solid rgba(255, 255, 255, 0.7);
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7), 0 0 25px rgba(0, 0, 0, 0.5);
   overflow: hidden;
 }
 
@@ -2138,13 +2186,13 @@
   padding: 12px 28px;
   background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
   color: white;
-  border: 2px solid rgba(52, 152, 219, 0.6);
+  border: 3px solid rgba(255, 255, 255, 0.7);
   border-radius: 12px;
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7), 0 0 25px rgba(52, 152, 219, 0.6);
   text-transform: uppercase;
   letter-spacing: 1.5px;
   z-index: 100;
@@ -2339,6 +2387,12 @@
   gap: 10px;
 }
 
+.guide-items p {
+  margin: 8px 0;
+  line-height: 1.6;
+  color: #2c1810;
+}
+
 .guide-item {
   padding: 10px;
   background: rgba(139, 69, 19, 0.15);
@@ -2351,6 +2405,33 @@
 
 .guide-item strong {
   color: #654321;
+}
+
+.guide-item em {
+  color: #8b4513;
+  font-style: italic;
+  display: block;
+  margin-top: 4px;
+}
+
+.guide-item .positive {
+  color: #27ae60;
+  font-weight: bold;
+}
+
+.guide-item .negative {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+.warning-text {
+  background: rgba(231, 76, 60, 0.2);
+  border: 1px solid rgba(231, 76, 60, 0.4);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 10px;
+  font-size: 13px;
+  color: #8b4513;
 }
 
 .guide-steps {

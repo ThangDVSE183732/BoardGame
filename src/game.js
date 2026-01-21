@@ -2,24 +2,21 @@
 
 // Định nghĩa 16 lá bài - mỗi lá có chỉ số effects riêng
 const SITUATION_CARDS = [
-  { id: 1, image: '1.png', title: 'Phân hóa thu nhập', effects: { CB: -2, DK: 0, ON: -1 } },
-  { id: 2, image: '2.png', title: 'Lợi ích tư nhân', effects: { CB: -1, DK: -1, ON: 0 } },
-  { id: 3, image: '3.png', title: 'Quyền lực trí thức', effects: { CB: 0, DK: 1, ON: -1 } },
-  { id: 4, image: '4.png', title: 'Công nhân thất nghiệp', effects: { CB: -2, DK: -1, ON: 0 } },
-  { id: 5, image: '5.png', title: 'Nông dân đô thị hóa', effects: { CB: -1, DK: 0, ON: -1 } },
-  { id: 6, image: '6.png', title: 'Tầng lớp trung lưu', effects: { CB: 1, DK: 1, ON: 0 } },
+  { id: 1, image: 'A1.png', effects: { CB: -2, DK: 0, ON: -1 } },
+  { id: 2, image: 'A2.png', effects: { CB: -1, DK: -1, ON: 0 } },
+  { id: 3, image: 'A3.png', effects: { CB: 0, DK: 1, ON: -1 } },
+  { id: 4, image: 'A4.png', effects: { CB: -2, DK: -1, ON: 0 } },
+  { id: 5, image: 'B1.png', effects: { CB: -1, DK: 0, ON: -1 } },
+  { id: 6, image: 'B2.png', effects: { CB: 1, DK: 1, ON: 0 } },
   
-  { id: 7, image: '1.png', title: 'Đối thoại giai cấp', effects: { CB: 0, DK: -2, ON: -1 } },
-  { id: 8, image: '2.png', title: 'Đoàn kết dân tộc', effects: { CB: 1, DK: 2, ON: 0 } },
-  { id: 9, image: '3.png', title: 'Liên minh công - nông', effects: { CB: 0, DK: 1, ON: 1 } },
-  { id: 10, image: '4.png', title: 'Trí thức và nhân dân', effects: { CB: -1, DK: -1, ON: 0 } },
-  { id: 11, image: '5.png', title: 'Đảng và quần chúng', effects: { CB: 1, DK: 1, ON: 1 } },
+  { id: 7, image: 'B3.png', effects: { CB: 0, DK: -2, ON: -1 } },
+  { id: 8, image: 'B4.png', effects: { CB: 1, DK: 2, ON: 0 } },
+  { id: 9, image: 'C1.png', effects: { CB: 0, DK: 1, ON: 1 } },
+  { id: 10, image: 'C2.png', effects: { CB: -1, DK: -1, ON: 0 } },
+  { id: 11, image: 'C3.png', effects: { CB: 1, DK: 1, ON: 1 } },
   
-  { id: 12, image: '6.png', title: 'Tái cơ cấu kinh tế', effects: { CB: -1, DK: 0, ON: -2 } },
-  { id: 13, image: '1.png', title: 'Quản lý xã hội', effects: { CB: 0, DK: 0, ON: 2 } },
-  { id: 14, image: '2.png', title: 'Pháp luật và trật tự', effects: { CB: 0, DK: -1, ON: 2 } },
-  { id: 15, image: '3.png', title: 'Hiện đại hóa', effects: { CB: 1, DK: 0, ON: -1 } },
-  { id: 16, image: '4.png', title: 'Đô thị hóa', effects: { CB: -1, DK: -1, ON: -1 } },
+  { id: 12, image: 'C4.png', effects: { CB: -1, DK: 0, ON: -2 } },
+  
 ];
 
 // Xóa hàm applyGroupBonus và OPTIONS vì không còn sử dụng

@@ -43,6 +43,11 @@ body {
   height: 100vh; /* Cố định chiều cao bằng màn hình */
   overflow: hidden; /* Cấm cuộn ở cấp body */
   display: block; /* Bỏ flex center cũ đi để tránh lỗi layout */
+  background-image: url('/puzzle-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 h1 {

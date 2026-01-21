@@ -110,13 +110,6 @@ const Board = ({ G, moves }) => {
         </div>
       </div>
 
-      {imbalanceState !== 'none' && (
-        <div className="imbalance-banner">
-          <span className="imbalance-icon">⚠️</span>
-          <span className="imbalance-text">{getImbalanceText()}</span>
-        </div>
-      )}
-
       {/* Nút Tiếp tục - góc phải */}
       {phase === 'choose' && (
         <button 
@@ -181,8 +174,15 @@ const Board = ({ G, moves }) => {
 
                   {/* Center area with banner and cards */}
                   <div className={`choose-phase-center ${phase === 'draw' ? 'draw-position' : ''}`}>
-                    <div className="card-selection-prompt">
-                      {phase === 'draw' ? 'Người chơi chọn thẻ' : 'Chọn phương án xử lý'}
+                    <div className={`card-selection-prompt ${imbalanceState !== 'none' ? 'imbalance-state' : ''}`}>
+                      {imbalanceState !== 'none' ? (
+                        <>
+                          <span className="imbalance-icon">⚠️</span>
+                          {getImbalanceText().replace('⚠️ ', '')}
+                        </>
+                      ) : (
+                        phase === 'draw' ? 'Người chơi chọn thẻ' : 'Chọn phương án xử lý'
+                      )}
                     </div>
 
                     <div className="options-fan">
@@ -222,12 +222,12 @@ const Board = ({ G, moves }) => {
               <div className="played-cards-container">
                 {playedCards.map((card, index) => (
                   <div key={index} className="played-card-item">
-                    <Card card={card} isPlayable={false} showCost={false} />
+                    <Card card={card} isPlayable={false} showCost={false} showEffects={true} />
                   </div>
                 ))}
                 {currentCard && phase === 'choose' && (
                   <div className="played-card-item current-playing">
-                    <Card card={currentCard} isPlayable={false} showCost={false} />
+                    <Card card={currentCard} isPlayable={false} showCost={false} showEffects={true} />
                   </div>
                 )}
               </div>
@@ -247,30 +247,76 @@ const Board = ({ G, moves }) => {
             
             <div className="guide-content">
               <div className="guide-section">
-                <h3>📊 CHỈ SỐ</h3>
+                <h3>🎯 MỤC TIÊU TRÒ CHƠI</h3>
                 <div className="guide-items">
-                  <div className="guide-item">⚖️ <strong>Công bằng (CB)</strong> - Quan hệ lợi ích giữa lao động – tư bản – nhà nước</div>
-                  <div className="guide-item">🤝 <strong>Đoàn kết (ĐK)</strong> - Mức đồng thuận giữa các giai cấp, tầng lớp</div>
-                  <div className="guide-item">🏛️ <strong>Ổn định (ỔN)</strong> - Khả năng duy trì trật tự xã hội XHCN</div>
+                  <p>Bạn vào vai <strong>chủ thể quản lý xã hội</strong> trong thời kỳ quá độ lên CNXH. Nhiệm vụ của bạn là <strong>điều tiết các mâu thuẫn xã hội khách quan</strong> nhằm duy trì và phát triển <strong>cơ cấu xã hội cân đối</strong>, tránh rơi vào khủng hoảng.</p>
+                  <p>Sau <strong>10 lượt chơi</strong>, trò chơi kết thúc và xã hội sẽ đi đến <strong>một trong bốn kết cục (Ending)</strong>.</p>
                 </div>
               </div>
 
               <div className="guide-section">
-                <h3>🎮 TURN STEPS</h3>
-                <ol className="guide-steps">
-                  <li className={phase === 'draw' ? 'active' : ''}><strong>DRAW:</strong> Rút thẻ tình huống</li>
-                  <li className={phase === 'choose' ? 'active' : ''}><strong>CHOOSE:</strong> Chọn phương án xử lý</li>
-                  <li className={phase === 'adjust' ? 'active' : ''}><strong>ADJUST:</strong> Điều chỉnh (tối đa 3 lần/game)</li>
-                  <li className={phase === 'result' ? 'active' : ''}><strong>RESULT:</strong> Xem kết quả và chuyển lượt</li>
-                </ol>
+                <h3>📊 CÁC CHỈ SỐ XÃ HỘI</h3>
+                <div className="guide-items">
+                  <div className="guide-item">
+                    <strong>⚖️ Công bằng phân phối (CB)</strong><br/>
+                    Phản ánh quan hệ lợi ích giữa lao động – tư bản – nhà nước.<br/>
+                    • CB cao: lợi ích được phân phối hợp lý<br/>
+                    • CB thấp: bất công, mâu thuẫn lợi ích gia tăng
+                  </div>
+                  <div className="guide-item">
+                    <strong>🤝 Đoàn kết – Niềm tin (ĐK)</strong><br/>
+                    Thể hiện mức độ đồng thuận xã hội và liên minh giai cấp.<br/>
+                    • ĐK cao: xã hội đồng lòng<br/>
+                    • ĐK thấp: chia rẽ, mất niềm tin
+                  </div>
+                  <div className="guide-item">
+                    <strong>🏛️ Ổn định xã hội (ỔN)</strong><br/>
+                    Khả năng duy trì trật tự xã hội XHCN.<br/>
+                    • ỔN cao: xã hội ổn định<br/>
+                    • ỔN thấp: rối loạn, nguy cơ khủng hoảng
+                  </div>
+                  <p><strong>Giới hạn:</strong> Mỗi chỉ số tối đa <strong>10 điểm</strong>. Điểm khởi đầu: <strong>CB = 3, ĐK = 3, ỔN = 3</strong></p>
+                </div>
               </div>
 
               <div className="guide-section">
-                <h3>🎯 NHÓM THẺ</h3>
+                <h3>🎮 CẤU TRÚC MỘT LƯỢT CHƠI</h3>
                 <div className="guide-items">
-                  <div className="guide-item"><strong>Nhóm A:</strong> Khuếch đại tác động lên CB (+1 điểm)</div>
-                  <div className="guide-item"><strong>Nhóm B:</strong> Khuếch đại tác động lên ĐK (+1 điểm)</div>
-                  <div className="guide-item"><strong>Nhóm C:</strong> Khuếch đại tác động lên ỔN (+1 điểm)</div>
+                  <div className="guide-item">
+                    <strong>Bước 1: Rút thẻ mâu thuẫn khách quan</strong><br/>
+                    Thẻ đại diện cho những mâu thuẫn tất yếu trong xã hội (lợi ích, giai cấp, phân phối...). Thẻ sẽ tác động trực tiếp lên các chỉ số.
+                  </div>
+                  <div className="guide-item">
+                    <strong>Bước 2: Kiểm tra trạng thái lệch cơ cấu</strong><br/>
+                    Sau khi áp dụng hiệu ứng thẻ, kiểm tra xem xã hội có rơi vào LỆCH CƠ CẤU hay không.
+                  </div>
+                  <div className="guide-item">
+                    <strong>Bước 3: Điều chỉnh có giới hạn (tùy chọn)</strong><br/>
+                    • Mỗi lượt chỉ được điều chỉnh <strong>1 lần</strong><br/>
+                    • Cả game chỉ được điều chỉnh <strong>tối đa 3 lần</strong><br/>
+                    ⚠️ Chủ thể xã hội không thể can thiệp tùy tiện, chỉ nên can thiệp ở những thời điểm then chốt.
+                  </div>
+                </div>
+              </div>
+
+              <div className="guide-section">
+                <h3>🔧 ĐIỀU CHỈNH CÓ GIỚI HẠN</h3>
+                <div className="guide-items">
+                  <div className="guide-item">
+                    <strong style={{color: '#9b59b6'}}>A. Điều chỉnh phân phối</strong><br/>
+                    Hiệu ứng: <span className="positive">CB +2</span>, <span className="negative">ĐK −1</span><br/>
+                    Giải quyết bất công lợi ích nhanh chóng nhưng dễ gây phản ứng xã hội.
+                  </div>
+                  <div className="guide-item">
+                    <strong style={{color: '#1abc9c'}}>B. Củng cố liên minh giai cấp</strong><br/>
+                    Hiệu ứng: <span className="positive">ĐK +2</span>, <span className="negative">CB −1</span><br/>
+                    Tăng đồng thuận xã hội nhưng phải hy sinh lợi ích vật chất.
+                  </div>
+                  <div className="guide-item">
+                    <strong style={{color: '#e67e22'}}>C. Điều tiết ý thức</strong><br/>
+                    Hiệu ứng: <span className="positive">CB +1, ĐK +1</span>, <span className="negative">ỔN −1</span><br/>
+                    Thuyết phục – giáo dục, cải thiện nhận thức nhưng không tạo ra thay đổi vật chất tức thì.
+                  </div>
                 </div>
               </div>
 
@@ -278,42 +324,73 @@ const Board = ({ G, moves }) => {
                 <h3>⚠️ TRẠNG THÁI LỆCH CƠ CẤU</h3>
                 <div className="guide-items">
                   <div className="guide-item imbalance-li">
-                    <strong>LỆCH LỢI ÍCH (LI):</strong> CB ≥4 và ĐK ≤1<br/>
-                    • Mỗi lần tăng CB → +0<br/>
-                    • Mỗi lượt: ĐK -1<br/>
-                    • Thoát: CB ≤4 và ĐK ≥2
+                    <strong>LỆCH LỢI ÍCH</strong><br/>
+                    <strong>Kích hoạt:</strong> CB ≥4 và ĐK ≤1<br/>
+                    <strong>Hiệu ứng:</strong><br/>
+                    • Mỗi lần tăng CB → +0 (không còn tác dụng)<br/>
+                    • Mỗi lượt: ĐK −1<br/>
+                    <strong>Thoát:</strong> CB ≤4 và ĐK ≥2<br/>
+                    <em>Phân phối nghiêng về một phía, liên minh giai cấp rạn nứt.</em>
                   </div>
                   <div className="guide-item imbalance-htlm">
-                    <strong>LỆCH HÌNH THỨC LIÊN MINH (HTLM):</strong> ĐK ≥4 và CB ≤1<br/>
+                    <strong>LỆCH HÌNH THỨC LIÊN MINH</strong><br/>
+                    <strong>Kích hoạt:</strong> ĐK ≥4 và CB ≤1<br/>
+                    <strong>Hiệu ứng:</strong><br/>
                     • Mỗi lần tăng ĐK → +0<br/>
-                    • Mỗi lượt: CB -1<br/>
-                    • Thoát: CB ≥2 và ĐK ≤4
+                    • Mỗi lượt: CB −1<br/>
+                    <strong>Thoát:</strong> CB ≥2 và ĐK ≤4<br/>
+                    <em>Đoàn kết chỉ mang tính hình thức, lợi ích không được bảo đảm.</em>
                   </div>
                   <div className="guide-item imbalance-odbn">
-                    <strong>ỔN ĐỊNH BỀ NGOÀI (ODBN):</strong> ỔN ≥4 và (CB ≤1 hoặc ĐK ≤1)<br/>
-                    • Không được tăng ỔN bằng điều chỉnh<br/>
-                    • Mỗi lượt: CB -1 hoặc ĐK -1<br/>
-                    • Thoát: CB ≥2 và ĐK ≥2
+                    <strong>ỔN ĐỊNH BỀ NGOÀI</strong><br/>
+                    <strong>Kích hoạt:</strong> ỔN ≥4 và (CB ≤1 hoặc ĐK ≤1)<br/>
+                    <strong>Hiệu ứng:</strong><br/>
+                    • Mọi hành động điều chỉnh không được tăng ỔN<br/>
+                    • Mỗi lượt: CB −1 hoặc ĐK −1 (trừ chỉ số đang thấp hơn)<br/>
+                    <strong>Thoát:</strong> CB ≥2 và ĐK ≥2<br/>
+                    <em>Trật tự xã hội được duy trì bằng biện pháp hành chính, chưa dựa trên đồng thuận thực chất.</em>
+                  </div>
+                  <p className="warning-text">⚠️ Khi đã rơi vào trạng thái lệch, cơ cấu xã hội <strong>không tự cân bằng</strong>. Nếu lệch kéo dài, xã hội sẽ tiến dần đến khủng hoảng.</p>
+                </div>
+              </div>
+
+              <div className="guide-section">
+                <h3>🏆 KẾT THÚC TRÒ CHƠI (ENDINGS)</h3>
+                <div className="guide-items">
+                  <div className="guide-item ending-perfect">
+                    <strong>🌱 ENDING 1: PHÁT TRIỂN HÀI HÒA</strong><br/>
+                    Điều kiện: CB ≥4, ĐK ≥4, ỔN ≥4, không ở trạng thái lệch<br/>
+                    ➡️ Cơ cấu xã hội phát triển cân đối, liên minh giai cấp vững chắc trong thời kỳ quá độ.
+                  </div>
+                  <div className="guide-item ending-stable">
+                    <strong>⚖️ ENDING 2: ỔN ĐỊNH TƯƠNG ĐỐI</strong><br/>
+                    Điều kiện: ỔN ≥3, CB ≥2 và ĐK ≥2, không ở trạng thái lệch<br/>
+                    ➡️ Xã hội ổn định nhưng mâu thuẫn chưa được giải quyết triệt để.
+                  </div>
+                  <div className="guide-item ending-formal">
+                    <strong>🏛️ ENDING 3: ỔN ĐỊNH HÌNH THỨC</strong><br/>
+                    Điều kiện: ỔN ≥4, đang ở bất kỳ trạng thái lệch nào<br/>
+                    ➡️ Trật tự được duy trì chủ yếu bằng biện pháp hành chính, cơ cấu xã hội mất cân đối.
+                  </div>
+                  <div className="guide-item ending-crisis">
+                    <strong>⚠️ ENDING 4: KHỦNG HOẢNG CƠ CẤU</strong><br/>
+                    Điều kiện: ỔN = 0 tại bất kỳ thời điểm nào HOẶC CB ≤0 và ĐK ≤0 HOẶC kết thúc 10 lượt nhưng CB ≤1 và ĐK ≤1<br/>
+                    ➡️ Mâu thuẫn xã hội tích tụ, liên minh giai cấp tan rã, xã hội rơi vào khủng hoảng.
                   </div>
                 </div>
               </div>
 
               <div className="guide-section">
-                <h3>🏆 ENDINGS</h3>
+                <h3>💡 GỢI Ý CHIẾN LƯỢC</h3>
                 <div className="guide-items">
-                  <div className="guide-item ending-perfect">
-                    <strong>ENDING 1 - PHÁT TRIỂN HÀI HÒA:</strong> CB ≥4, ĐK ≥4, ỔN ≥4, không lệch
-                  </div>
-                  <div className="guide-item ending-stable">
-                    <strong>ENDING 2 - ỔN ĐỊNH TƯƠNG ĐỐI:</strong> ỔN ≥3, CB ≥2, ĐK ≥2, không lệch
-                  </div>
-                  <div className="guide-item ending-formal">
-                    <strong>ENDING 3 - ỔN ĐỊNH HÌNH THỨC:</strong> ỔN ≥4, đang ở trạng thái lệch
-                  </div>
-                  <div className="guide-item ending-crisis">
-                    <strong>ENDING 4 - KHỦNG HOẢNG CƠ CẤU:</strong> ỔN = 0 hoặc CB ≤1 và ĐK ≤1
-                  </div>
+                  <div className="guide-item">• Không tối đa hóa một chỉ số duy nhất</div>
+                  <div className="guide-item">• Tránh can thiệp sớm hoặc quá thường xuyên</div>
+                  <div className="guide-item">• Ưu tiên <strong>thoát trạng thái lệch</strong> hơn là tăng điểm ngắn hạn</div>
+                  <div className="guide-item">• Nhớ rằng: <strong>ổn định bền vững phải dựa trên công bằng và đồng thuận</strong>, không chỉ trật tự hành chính</div>
                 </div>
+                <p style={{textAlign: 'center', marginTop: '20px', fontStyle: 'italic', opacity: 0.8}}>
+                  Trò chơi phản ánh tính lịch sử – xã hội của quá trình xây dựng và điều tiết cơ cấu xã hội trong thời kỳ quá độ lên CNXH.
+                </p>
               </div>
             </div>
           </div>
