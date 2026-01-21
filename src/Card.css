@@ -1,11 +1,11 @@
 .card {
-  width: 160px;
-  height: 220px;
+  width: 120px; 
+  height: 165px;
   perspective: 1000px;
   cursor: pointer;
   transition: transform 0.3s ease;
-  margin: 8px;
-  filter: drop-shadow(0 8px 15px rgba(0, 0, 0, 0.6));
+  margin: 6px; /* Giảm margin một chút */
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.6));
 }
 
 .card.playable:hover {
