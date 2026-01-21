@@ -24,56 +24,16 @@ const Board = ({ G, moves }) => {
     }
   };
 
-  const handleDrawCard = () => {
-    if (phase === 'draw') {
-      moves.drawCard();
-    }
-  };
-
   const handleChooseOption = (optionKey) => {
     if (phase === 'choose') {
       moves.chooseOption(optionKey);
     }
   };
 
-  const handleUseAdjustment = (adjustmentKey) => {
-    if (phase === 'adjust' && !usedAdjustmentThisTurn && adjustmentsLeft > 0) {
-      moves.useAdjustment(adjustmentKey);
+  const handleSkipChooseOption = () => {
+    if (phase === 'choose') {
+      moves.skipChooseOption();
     }
-  };
-
-  const handleSkipAdjustment = () => {
-    if (phase === 'adjust') {
-      moves.skipAdjustment();
-    }
-  };
-
-  const handleNextTurn = () => {
-    if (phase === 'result') {
-      moves.nextTurn();
-    }
-  };
-
-  // Adjustments data (cho việc điều chỉnh có giới hạn)
-  const adjustments = {
-    A: { 
-      name: 'Điều chỉnh phân phối', 
-      effects: { CB: 2, DK: -1, ON: 0 },
-      description: 'CB +2, ĐK -1',
-      color: '#9b59b6'
-    },
-    B: { 
-      name: 'Củng cố liên minh giai cấp', 
-      effects: { DK: 2, CB: -1, ON: 0 },
-      description: 'ĐK +2, CB -1',
-      color: '#1abc9c'
-    },
-    C: { 
-      name: 'Điều tiết ý thức', 
-      effects: { CB: 1, DK: 1, ON: -1 },
-      description: 'CB +1, ĐK +1, ỔN -1',
-      color: '#e67e22'
-    },
   };
 
   const formatEffect = (value) => {
@@ -157,6 +117,16 @@ const Board = ({ G, moves }) => {
         </div>
       )}
 
+      {/* Nút Tiếp tục - góc phải */}
+      {phase === 'choose' && (
+        <button 
+          className="btn-skip-fixed-right"
+          onClick={handleSkipChooseOption}
+        >
+          ➡️ TIẾP TỤC
+        </button>
+      )}
+
       {/* Main Game Layout - Centered */}
       <div className="game-layout">
         
@@ -170,36 +140,38 @@ const Board = ({ G, moves }) => {
                 <>
                   {/* Option buttons - always visible on the left */}
                   <div className="options-buttons-left">
-                    {['A', 'B', 'C'].map((key) => {
-                      const displayData = adjustments[key];
-                      const effects = displayData?.effects || {};
+                    {[
+                      { key: 'A', name: 'Điều chỉnh phân phối', effects: { CB: 2, DK: -1, ON: 0 }, color: '#9b59b6' },
+                      { key: 'B', name: 'Củng cố liên minh giai cấp', effects: { DK: 2, CB: -1, ON: 0 }, color: '#1abc9c' },
+                      { key: 'C', name: 'Điều tiết ý thức', effects: { CB: 1, DK: 1, ON: -1 }, color: '#e67e22' }
+                    ].map((displayData) => {
                       const isClickable = currentCard && phase === 'choose';
                       
                       return (
                         <button
-                          key={key}
+                          key={displayData.key}
                           className="option-btn-vertical"
-                          style={{ backgroundColor: displayData?.color || '#666' }}
+                          style={{ backgroundColor: displayData.color }}
                           onClick={() => {
                             if (isClickable) {
-                              handleChooseOption(key);
+                              handleChooseOption(displayData.key);
                             }
                           }}
                           disabled={!isClickable}
                         >
                           <div className="option-btn-header">
-                            <span className="option-btn-letter">{key}</span>
-                            <span className="option-btn-name">{displayData?.name || ''}</span>
+                            <span className="option-btn-letter">{displayData.key}</span>
+                            <span className="option-btn-name">{displayData.name}</span>
                           </div>
                           <div className="option-btn-effects">
-                            <span className={effects.CB > 0 ? 'positive' : effects.CB < 0 ? 'negative' : 'neutral'}>
-                              ⚖️ {formatEffect(effects.CB || 0)}
+                            <span className={displayData.effects.CB > 0 ? 'positive' : displayData.effects.CB < 0 ? 'negative' : 'neutral'}>
+                              ⚖️ {formatEffect(displayData.effects.CB)}
                             </span>
-                            <span className={effects.DK > 0 ? 'positive' : effects.DK < 0 ? 'negative' : 'neutral'}>
-                              🤝 {formatEffect(effects.DK || 0)}
+                            <span className={displayData.effects.DK > 0 ? 'positive' : displayData.effects.DK < 0 ? 'negative' : 'neutral'}>
+                              🤝 {formatEffect(displayData.effects.DK)}
                             </span>
-                            <span className={effects.ON > 0 ? 'positive' : effects.ON < 0 ? 'negative' : 'neutral'}>
-                              🏛️ {formatEffect(effects.ON || 0)}
+                            <span className={displayData.effects.ON > 0 ? 'positive' : displayData.effects.ON < 0 ? 'negative' : 'neutral'}>
+                              🏛️ {formatEffect(displayData.effects.ON)}
                             </span>
                           </div>
                         </button>
@@ -208,7 +180,7 @@ const Board = ({ G, moves }) => {
                   </div>
 
                   {/* Center area with banner and cards */}
-                  <div className="choose-phase-center">
+                  <div className={`choose-phase-center ${phase === 'draw' ? 'draw-position' : ''}`}>
                     <div className="card-selection-prompt">
                       {phase === 'draw' ? 'Người chơi chọn thẻ' : 'Chọn phương án xử lý'}
                     </div>
@@ -238,78 +210,6 @@ const Board = ({ G, moves }) => {
                   </div>
                 </div>
                 </>
-              )}
-
-              {/* Adjust Phase - Điều chỉnh có giới hạn */}
-              {phase === 'adjust' && (
-                <div className="adjust-phase-center">
-                  <div className="phase-icon">🔧</div>
-                  <h2>Điều chỉnh chủ thể</h2>
-                  <p className="adjust-desc">Bạn có {adjustmentsLeft} lần điều chỉnh còn lại (tối đa 1 lần/lượt)</p>
-                  
-                  {!usedAdjustmentThisTurn && adjustmentsLeft > 0 ? (
-                    <div className="adjustments-grid">
-                      {['A', 'B', 'C'].map(key => {
-                        const adj = adjustments[key];
-                        
-                        return (
-                          <div 
-                            key={key} 
-                            className="adjustment-card"
-                            onClick={() => handleUseAdjustment(key)}
-                            style={{borderColor: adj.color}}
-                          >
-                            <div className="adjustment-header" style={{backgroundColor: adj.color}}>
-                              <span className="adjustment-letter">{key}</span>
-                              <span className="adjustment-name">{adj.name}</span>
-                            </div>
-                            <div className="adjustment-desc">{adj.description}</div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="no-adjustment">
-                      {usedAdjustmentThisTurn ? (
-                        <p>✅ Đã sử dụng điều chỉnh trong lượt này</p>
-                      ) : (
-                        <p>❌ Đã hết lượt điều chỉnh</p>
-                      )}
-                    </div>
-                  )}
-
-                  <button 
-                    className="btn btn-skip"
-                    onClick={handleSkipAdjustment}
-                  >
-                    ➡️ Tiếp tục
-                  </button>
-                </div>
-              )}
-
-              {/* Result Phase */}
-              {phase === 'result' && (
-                <div className="result-phase-center">
-                  <div className="phase-icon">✅</div>
-                  <h2>Quyết định đã được thực hiện</h2>
-                  <p>Các chỉ số xã hội đã được cập nhật</p>
-                  {imbalanceState !== 'none' && (
-                    <div className="imbalance-alert-compact">
-                      <strong>{getImbalanceText()}</strong>
-                      <p>
-                        {imbalanceState === 'LI' && 'Mỗi lượt ĐK -1. Thoát khi CB ≤ 4 và ĐK ≥ 2'}
-                        {imbalanceState === 'HTLM' && 'Mỗi lượt CB -1. Thoát khi CB ≥ 2 và ĐK ≤ 4'}
-                        {imbalanceState === 'ODBN' && 'Mỗi lượt CB/ĐK -1. Thoát khi CB ≥ 2 và ĐK ≥ 2'}
-                      </p>
-                    </div>
-                  )}
-                  <button 
-                    className="btn btn-next"
-                    onClick={handleNextTurn}
-                  >
-                    {currentTurn < 12 ? '➡️ Lượt tiếp theo' : '🏁 Xem kết quả'}
-                  </button>
-                </div>
               )}
 
             </div>

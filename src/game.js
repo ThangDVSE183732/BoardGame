@@ -258,7 +258,7 @@ export const CardGame = {
     },
 
     // Chọn phương án A, B, hoặc C
-    chooseOption: ({ G }, optionKey) => {
+    chooseOption: ({ G, events }, optionKey) => {
       if (G.phase !== 'choose' || !G.currentCard) return;
       
       const option = OPTIONS[optionKey];
@@ -298,11 +298,134 @@ export const CardGame = {
         indicators: { ...G.indicators },
       });
       
-      // Reset flag điều chỉnh cho lượt này
-      G.usedAdjustmentThisTurn = false;
+      // Kiểm tra game over do chỉ số = 0
+      if (G.indicators.ON === 0) {
+        G.ending = {
+          type: 'crisis',
+          title: 'ENDING 4: KHỦNG HOẢNG CƠ CẤU',
+          message: 'ỔN ĐỊNH = 0. Xã hội rơi vào khủng hoảng!',
+          color: '#e74c3c'
+        };
+        events.endGame();
+        return;
+      }
       
-      // Chuyển sang phase adjust (cho phép điều chỉnh)
-      G.phase = 'adjust';
+      // Kiểm tra các trạng thái lệch
+      // 1. Kiểm tra LỆCH LỢI ÍCH
+      if (checkImbalanceLI(G.indicators)) {
+        G.imbalanceState = 'LI';
+      } else if (G.imbalanceState === 'LI' && canExitImbalanceLI(G.indicators)) {
+        G.imbalanceState = 'none';
+      }
+      
+      // 2. Kiểm tra LỆCH HÌNH THỨC LIÊN MINH
+      if (checkImbalanceHTLM(G.indicators)) {
+        G.imbalanceState = 'HTLM';
+      } else if (G.imbalanceState === 'HTLM' && canExitImbalanceHTLM(G.indicators)) {
+        G.imbalanceState = 'none';
+      }
+      
+      // 3. Kiểm tra ỔN ĐỊNH BỀ NGOÀI
+      if (checkImbalanceODBN(G.indicators)) {
+        G.imbalanceState = 'ODBN';
+      } else if (G.imbalanceState === 'ODBN' && canExitImbalanceODBN(G.indicators)) {
+        G.imbalanceState = 'none';
+      }
+      
+      // Áp dụng penalty theo trạng thái lệch
+      if (G.imbalanceState === 'LI') {
+        applyImbalanceLI(G.indicators);
+      } else if (G.imbalanceState === 'HTLM') {
+        applyImbalanceHTLM(G.indicators);
+      } else if (G.imbalanceState === 'ODBN') {
+        applyImbalanceODBN(G.indicators);
+      }
+      
+      // Chuyển sang lượt tiếp theo
+      G.currentTurn += 1;
+      G.currentCard = null;
+      
+      // Kiểm tra kết thúc game sau 12 lượt
+      if (G.currentTurn > 12) {
+        G.ending = determineEnding(G.indicators, G.imbalanceState);
+        events.endGame();
+      } else {
+        G.phase = 'draw';
+      }
+    },
+
+    // Bỏ qua việc chọn phương án (không áp dụng hiệu ứng gì)
+    skipChooseOption: ({ G, events }) => {
+      if (G.phase !== 'choose' || !G.currentCard) return;
+      
+      const card = G.currentCard;
+      
+      // Lưu thẻ vào playedCards nhưng không áp dụng effects
+      G.playedCards.push(card);
+      
+      // Lưu lịch sử với option = null
+      G.history.push({
+        turn: G.currentTurn,
+        card: card,
+        option: null,
+        effects: { CB: 0, DK: 0, ON: 0 },
+        indicators: { ...G.indicators },
+      });
+      
+      // Kiểm tra game over do chỉ số = 0
+      if (G.indicators.ON === 0) {
+        G.ending = {
+          type: 'crisis',
+          title: 'ENDING 4: KHỦNG HOẢNG CƠ CẤU',
+          message: 'ỔN ĐỊNH = 0. Xã hội rơi vào khủng hoảng!',
+          color: '#e74c3c'
+        };
+        events.endGame();
+        return;
+      }
+      
+      // Kiểm tra các trạng thái lệch
+      // 1. Kiểm tra LỆCH LỢI ÍCH
+      if (checkImbalanceLI(G.indicators)) {
+        G.imbalanceState = 'LI';
+      } else if (G.imbalanceState === 'LI' && canExitImbalanceLI(G.indicators)) {
+        G.imbalanceState = 'none';
+      }
+      
+      // 2. Kiểm tra LỆCH HÌNH THỨC LIÊN MINH
+      if (checkImbalanceHTLM(G.indicators)) {
+        G.imbalanceState = 'HTLM';
+      } else if (G.imbalanceState === 'HTLM' && canExitImbalanceHTLM(G.indicators)) {
+        G.imbalanceState = 'none';
+      }
+      
+      // 3. Kiểm tra ỔN ĐỊNH BỀ NGOÀI
+      if (checkImbalanceODBN(G.indicators)) {
+        G.imbalanceState = 'ODBN';
+      } else if (G.imbalanceState === 'ODBN' && canExitImbalanceODBN(G.indicators)) {
+        G.imbalanceState = 'none';
+      }
+      
+      // Áp dụng penalty theo trạng thái lệch
+      if (G.imbalanceState === 'LI') {
+        applyImbalanceLI(G.indicators);
+      } else if (G.imbalanceState === 'HTLM') {
+        applyImbalanceHTLM(G.indicators);
+      } else if (G.imbalanceState === 'ODBN') {
+        applyImbalanceODBN(G.indicators);
+      }
+      
+      // Chuyển sang lượt tiếp theo
+      G.currentTurn += 1;
+      G.currentCard = null;
+      
+      // Kiểm tra kết thúc game sau 12 lượt
+      if (G.currentTurn > 12) {
+        G.ending = determineEnding(G.indicators, G.imbalanceState);
+        events.endGame();
+      } else {
+        G.phase = 'draw';
+      }
     },
 
     // Sử dụng hành động điều chỉnh (tối đa 3 lần/game, 1 lần/lượt)
