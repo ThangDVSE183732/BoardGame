@@ -48,6 +48,25 @@ const OPTIONS = {
   },
 };
 
+// Định nghĩa 3 phương án ĐIỀU CHỈNH có giới hạn (tối đa 3 lần/game)
+const ADJUSTMENTS = {
+  A: { 
+    name: 'Điều chỉnh phân phối', 
+    effects: { CB: 2, DK: -1, ON: 0 },
+    description: 'Giải quyết lợi ích nhưng dễ gây phản ứng xã hội'
+  },
+  B: { 
+    name: 'Củng cố liên minh giai cấp', 
+    effects: { DK: 2, CB: -1, ON: 0 },
+    description: 'Tăng đồng thuận nhưng phải hy sinh lợi ích'
+  },
+  C: { 
+    name: 'Điều tiết ý thức', 
+    effects: { CB: 1, DK: 1, ON: -1 },
+    description: 'Thuyết phục – giáo dục nhưng không tạo ra thay đổi vật chất tức thì'
+  },
+};
+
 // Xáo deck
 function shuffleDeck(deck) {
   const shuffled = [...deck];
@@ -68,9 +87,9 @@ function applyGroupBonus(card, effects) {
     bonusEffects.CB += effects.CB > 0 ? 1 : -1;
   }
   
-  // Nhóm B: khuếch đại tác động LM
-  if (card.group === 'B' && effects.LM !== 0) {
-    bonusEffects.LM += effects.LM > 0 ? 1 : -1;
+  // Nhóm B: khuếch đại tác động DK
+  if (card.group === 'B' && effects.DK !== 0) {
+    bonusEffects.DK += effects.DK > 0 ? 1 : -1;
   }
   
   // Nhóm C: khuếch đại tác động ON
@@ -81,77 +100,101 @@ function applyGroupBonus(card, effects) {
   return bonusEffects;
 }
 
-// Kiểm tra trạng thái trận pháp lệch
-function checkImbalance(indicators) {
-  const { LM, CB, ON } = indicators;
-  const values = [LM, CB, ON];
-  
-  const highValues = values.filter(v => v >= 5);
-  const lowValues = values.filter(v => v <= 2);
-  
-  // Nếu có 1 chỉ số >= 5 và 2 chỉ số <= 2
-  return highValues.length === 1 && lowValues.length === 2;
+// Kiểm tra và xử lý trạng thái LỆCH LỢI ÍCH
+function checkImbalanceLI(indicators) {
+  return indicators.CB >= 4 && indicators.DK <= 1;
 }
 
-// Áp dụng penalty trận pháp lệch
-function applyImbalancePenalty(indicators) {
-  const { LM, CB, ON } = indicators;
-  const maxValue = Math.max(LM, CB, ON);
-  
-  if (LM === maxValue) indicators.LM = Math.max(0, indicators.LM - 1);
-  else if (CB === maxValue) indicators.CB = Math.max(0, indicators.CB - 1);
-  else if (ON === maxValue) indicators.ON = Math.max(0, indicators.ON - 1);
+function applyImbalanceLI(indicators) {
+  // Mỗi lượt: DK -1
+  indicators.DK = Math.max(0, indicators.DK - 1);
 }
 
-// Kiểm tra điều kiện thoát trận pháp lệch
-function canExitImbalance(indicators) {
-  const { LM, CB, ON } = indicators;
-  return LM >= 3 && CB >= 3 && ON >= 3;
+function canExitImbalanceLI(indicators) {
+  return indicators.CB <= 4 && indicators.DK >= 2;
 }
 
-// Xác định ending
-function determineEnding(indicators) {
-  const { LM, CB, ON } = indicators;
-  const values = [LM, CB, ON];
-  const minValue = Math.min(...values);
-  const maxValue = Math.max(...values);
-  const diff = maxValue - minValue;
+// Kiểm tra và xử lý trạng thái LỆCH HÌNH THỨC LIÊN MINH
+function checkImbalanceHTLM(indicators) {
+  return indicators.DK >= 4 && indicators.CB <= 1;
+}
+
+function applyImbalanceHTLM(indicators) {
+  // Mỗi lượt: CB -1
+  indicators.CB = Math.max(0, indicators.CB - 1);
+}
+
+function canExitImbalanceHTLM(indicators) {
+  return indicators.CB >= 2 && indicators.DK <= 4;
+}
+
+// Kiểm tra và xử lý trạng thái ỔN ĐỊNH BỀ NGOÀI
+function checkImbalanceODBN(indicators) {
+  return indicators.ON >= 4 && (indicators.CB <= 1 || indicators.DK <= 1);
+}
+
+function applyImbalanceODBN(indicators) {
+  // Mỗi lượt: CB -1 hoặc DK -1 (ưu tiên trừ chỉ số đang thấp hơn)
+  if (indicators.CB <= indicators.DK) {
+    indicators.CB = Math.max(0, indicators.CB - 1);
+  } else {
+    indicators.DK = Math.max(0, indicators.DK - 1);
+  }
+}
+
+function canExitImbalanceODBN(indicators) {
+  return indicators.CB >= 2 && indicators.DK >= 2;
+}
+
+// Xác định ending theo cơ chế mới
+function determineEnding(indicators, imbalanceState) {
+  const { CB, DK, ON } = indicators;
   
-  // Ending hoàn hảo
-  if (minValue >= 5 && diff <= 1) {
+  // Ending 4: KHỦNG HOẢNG CƠ CẤU
+  if (ON === 0 || (CB === 0 && DK === 0) || (CB <= 1 && DK <= 1)) {
+    return {
+      type: 'crisis',
+      title: 'ENDING 4: KHỦNG HOẢNG CƠ CẤU',
+      message: 'Mâu thuẫn giai cấp – tầng lớp tích tụ không được giải quyết, liên minh tan rã, xã hội rơi vào khủng hoảng.',
+      color: '#e74c3c'
+    };
+  }
+  
+  // Ending 1: PHÁT TRIỂN HÀI HÒA
+  if (CB >= 4 && DK >= 4 && ON >= 4 && imbalanceState === 'none') {
     return {
       type: 'perfect',
-      title: 'HOÀN HẢO - PHÁT TRIỂN HÀI HÒA',
-      message: 'Xã hội phát triển cân bằng, hài hòa trên mọi phương diện. Mô hình quá độ lên chủ nghĩa xã hội đạt hiệu quả cao nhất!',
+      title: 'ENDING 1: PHÁT TRIỂN HÀI HÒA',
+      message: 'Cơ cấu xã hội phát triển cân đối, liên minh giai cấp được củng cố vững chắc trong thời kỳ quá độ.',
       color: '#f1c40f'
     };
   }
   
-  // Ending thắng
-  if (minValue >= 4 && maxValue <= 6) {
+  // Ending 3: ỔN ĐỊNH HÌNH THỨC
+  if (ON >= 4 && imbalanceState !== 'none') {
     return {
-      type: 'win',
-      title: 'THẮNG LỢI - CƠ CẤU XÃ HỘI CÂN BẰNG',
-      message: 'Cơ cấu xã hội được duy trì ở mức cân bằng tốt. Quá trình quá độ diễn ra thuận lợi.',
+      type: 'formal',
+      title: 'ENDING 3: ỔN ĐỊNH HÌNH THỨC',
+      message: 'Trật tự xã hội được duy trì chủ yếu bằng biện pháp hành chính, trong khi liên minh giai cấp và lợi ích xã hội còn mất cân đối.',
+      color: '#e67e22'
+    };
+  }
+  
+  // Ending 2: ỔN ĐỊNH TƯƠNG ĐỐI
+  if (ON >= 3 && CB >= 2 && DK >= 2 && imbalanceState === 'none') {
+    return {
+      type: 'stable',
+      title: 'ENDING 2: ỔN ĐỊNH TƯƠNG ĐỐI',
+      message: 'Xã hội duy trì ổn định, mâu thuẫn được kiểm soát nhưng chưa được giải quyết triệt để.',
       color: '#27ae60'
     };
   }
   
-  // Ending trung bình
-  if (minValue >= 3) {
-    return {
-      type: 'average',
-      title: 'ỔN ĐỊNH - ỔN ĐỊNH CẦM CHỪNG',
-      message: 'Xã hội duy trì được sự ổn định cơ bản nhưng còn nhiều bất cập. Cần tiếp tục cải thiện.',
-      color: '#95a5a6'
-    };
-  }
-  
-  // Thất bại
+  // Default: KHỦNG HOẢNG CƠ CẤU
   return {
-    type: 'lose',
-    title: 'THẤT BẠI - MẤT CÂN BẰNG',
-    message: 'Cơ cấu xã hội mất cân bằng nghiêm trọng. Quá trình quá độ gặp nhiều khó khăn.',
+    type: 'crisis',
+    title: 'ENDING 4: KHỦNG HOẢNG CƠ CẤU',
+    message: 'Mâu thuẫn giai cấp – tầng lớp tích tụ không được giải quyết, liên minh tan rã, xã hội rơi vào khủng hoảng.',
     color: '#e74c3c'
   };
 }
@@ -169,23 +212,29 @@ export const CardGame = {
     // Các thẻ đã chơi (lưu lịch sử)
     playedCards: [],
     
-    // 3 chỉ số xã hội (khởi điểm = 5)
+    // 3 chỉ số xã hội (khởi điểm = 3, max = 10)
     indicators: {
-      LM: 5,  // Liên minh xã hội
-      CB: 5,  // Cân bằng lợi ích
-      ON: 5,  // Ổn định cơ cấu
+      CB: 3,  // Công bằng phân phối
+      DK: 3,  // Đoàn kết - niềm tin
+      ON: 3,  // Ổn định xã hội
     },
     
-    // Trạng thái trận pháp lệch
-    isImbalanced: false,
+    // Trạng thái lệch cơ cấu: 'none', 'LI' (lợi ích), 'HTLM' (hình thức liên minh), 'ODBN' (ổn định bề ngoài)
+    imbalanceState: 'none',
     
-    // Lượt chơi hiện tại (1-10)
+    // Số lần điều chỉnh còn lại (tối đa 3 lần trong toàn game)
+    adjustmentsLeft: 3,
+    
+    // Đã dùng điều chỉnh trong lượt này chưa
+    usedAdjustmentThisTurn: false,
+    
+    // Lượt chơi hiện tại (1-12)
     currentTurn: 1,
     
     // Lịch sử các lựa chọn
     history: [],
     
-    // Phase của lượt: 'draw', 'choose', 'result'
+    // Phase của lượt: 'draw', 'choose', 'adjust', 'result'
     phase: 'draw',
     
     // Kết quả ending
@@ -209,7 +258,7 @@ export const CardGame = {
     },
 
     // Chọn phương án A, B, hoặc C
-    chooseOption: ({ G, events }, optionKey) => {
+    chooseOption: ({ G }, optionKey) => {
       if (G.phase !== 'choose' || !G.currentCard) return;
       
       const option = OPTIONS[optionKey];
@@ -218,10 +267,24 @@ export const CardGame = {
       // Tính toán effects với hệ số nhóm
       const effects = applyGroupBonus(card, option.effects);
       
-      // Áp dụng effects lên indicators
-      G.indicators.LM = Math.max(0, Math.min(7, G.indicators.LM + effects.LM));
-      G.indicators.CB = Math.max(0, Math.min(7, G.indicators.CB + effects.CB));
-      G.indicators.ON = Math.max(0, Math.min(7, G.indicators.ON + effects.ON));
+      // Áp dụng effects lên indicators (max = 10)
+      G.indicators.CB = Math.max(0, Math.min(10, G.indicators.CB + (effects.CB || 0)));
+      G.indicators.DK = Math.max(0, Math.min(10, G.indicators.DK + (effects.DK || 0)));
+      G.indicators.ON = Math.max(0, Math.min(10, G.indicators.ON + (effects.ON || 0)));
+      
+      // Kiểm tra nếu đang ở trạng thái lệch
+      // LỆCH LỢI ÍCH: Mỗi lần tăng CB sẽ thành +0
+      if (G.imbalanceState === 'LI' && effects.CB > 0) {
+        G.indicators.CB -= effects.CB;
+      }
+      // LỆCH HÌNH THỨC LIÊN MINH: Mỗi lần tăng DK sẽ thành +0
+      if (G.imbalanceState === 'HTLM' && effects.DK > 0) {
+        G.indicators.DK -= effects.DK;
+      }
+      // ỔN ĐỊNH BỀ NGOÀI: Không được tăng ON
+      if (G.imbalanceState === 'ODBN' && effects.ON > 0) {
+        G.indicators.ON -= effects.ON;
+      }
       
       // Lưu thẻ vào playedCards
       G.playedCards.push(card);
@@ -235,31 +298,91 @@ export const CardGame = {
         indicators: { ...G.indicators },
       });
       
+      // Reset flag điều chỉnh cho lượt này
+      G.usedAdjustmentThisTurn = false;
+      
+      // Chuyển sang phase adjust (cho phép điều chỉnh)
+      G.phase = 'adjust';
+    },
+
+    // Sử dụng hành động điều chỉnh (tối đa 3 lần/game, 1 lần/lượt)
+    useAdjustment: ({ G }, adjustmentKey) => {
+      if (G.phase !== 'adjust') return;
+      if (G.usedAdjustmentThisTurn) return;
+      if (G.adjustmentsLeft <= 0) return;
+      
+      const adjustment = ADJUSTMENTS[adjustmentKey];
+      const effects = adjustment.effects;
+      
+      // Áp dụng effects
+      G.indicators.CB = Math.max(0, Math.min(10, G.indicators.CB + (effects.CB || 0)));
+      G.indicators.DK = Math.max(0, Math.min(10, G.indicators.DK + (effects.DK || 0)));
+      G.indicators.ON = Math.max(0, Math.min(10, G.indicators.ON + (effects.ON || 0)));
+      
+      // Kiểm tra nếu đang ở trạng thái lệch
+      // ỔN ĐỊNH BỀ NGOÀI: Không được tăng ON bằng điều chỉnh
+      if (G.imbalanceState === 'ODBN' && effects.ON > 0) {
+        G.indicators.ON -= effects.ON;
+      }
+      
+      // Giảm số lần điều chỉnh
+      G.adjustmentsLeft -= 1;
+      G.usedAdjustmentThisTurn = true;
+      
+      // Lưu lịch sử điều chỉnh
+      G.history.push({
+        turn: G.currentTurn,
+        adjustment: adjustmentKey,
+        effects: effects,
+        indicators: { ...G.indicators },
+      });
+    },
+
+    // Bỏ qua điều chỉnh và tiếp tục
+    skipAdjustment: ({ G, events }) => {
+      if (G.phase !== 'adjust') return;
+      
       // Kiểm tra game over do chỉ số = 0
-      if (G.indicators.LM === 0 || G.indicators.CB === 0 || G.indicators.ON === 0) {
+      if (G.indicators.ON === 0) {
         G.ending = {
-          type: 'lose',
-          title: 'THẤT BẠI - SỤP ĐỔ',
-          message: 'Một trong các chỉ số xã hội giảm về 0. Xã hội rơi vào khủng hoảng!',
+          type: 'crisis',
+          title: 'ENDING 4: KHỦNG HOẢNG CƠ CẤU',
+          message: 'ỔN ĐỊNH = 0. Xã hội rơi vào khủng hoảng!',
           color: '#e74c3c'
         };
         events.endGame();
         return;
       }
       
-      // Kiểm tra trận pháp lệch
-      if (checkImbalance(G.indicators)) {
-        G.isImbalanced = true;
+      // Kiểm tra các trạng thái lệch
+      // 1. Kiểm tra LỆCH LỢI ÍCH
+      if (checkImbalanceLI(G.indicators)) {
+        G.imbalanceState = 'LI';
+      } else if (G.imbalanceState === 'LI' && canExitImbalanceLI(G.indicators)) {
+        G.imbalanceState = 'none';
       }
       
-      // Áp dụng penalty nếu đang trong trạng thái lệch
-      if (G.isImbalanced) {
-        applyImbalancePenalty(G.indicators);
-        
-        // Kiểm tra điều kiện thoát
-        if (canExitImbalance(G.indicators)) {
-          G.isImbalanced = false;
-        }
+      // 2. Kiểm tra LỆCH HÌNH THỨC LIÊN MINH
+      if (checkImbalanceHTLM(G.indicators)) {
+        G.imbalanceState = 'HTLM';
+      } else if (G.imbalanceState === 'HTLM' && canExitImbalanceHTLM(G.indicators)) {
+        G.imbalanceState = 'none';
+      }
+      
+      // 3. Kiểm tra ỔN ĐỊNH BỀ NGOÀI
+      if (checkImbalanceODBN(G.indicators)) {
+        G.imbalanceState = 'ODBN';
+      } else if (G.imbalanceState === 'ODBN' && canExitImbalanceODBN(G.indicators)) {
+        G.imbalanceState = 'none';
+      }
+      
+      // Áp dụng penalty theo trạng thái lệch
+      if (G.imbalanceState === 'LI') {
+        applyImbalanceLI(G.indicators);
+      } else if (G.imbalanceState === 'HTLM') {
+        applyImbalanceHTLM(G.indicators);
+      } else if (G.imbalanceState === 'ODBN') {
+        applyImbalanceODBN(G.indicators);
       }
       
       // Chuyển sang result phase
@@ -273,9 +396,9 @@ export const CardGame = {
       G.currentTurn += 1;
       G.currentCard = null;
       
-      // Kiểm tra kết thúc game sau 10 lượt
-      if (G.currentTurn > 10) {
-        G.ending = determineEnding(G.indicators);
+      // Kiểm tra kết thúc game sau 12 lượt
+      if (G.currentTurn > 12) {
+        G.ending = determineEnding(G.indicators, G.imbalanceState);
         events.endGame();
       } else {
         G.phase = 'draw';

@@ -1,9 +1,28 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Card from './Card';
 import './Board.css';
 
 const Board = ({ G, moves }) => {
-  const { indicators, currentCard, phase, currentTurn, isImbalanced, deck, ending, playedCards } = G;
+  const { indicators, currentCard, phase, currentTurn, imbalanceState, deck, ending, playedCards, adjustmentsLeft, usedAdjustmentThisTurn } = G;
+  const [showGuide, setShowGuide] = useState(false);
+  const [selectedCardIndex, setSelectedCardIndex] = useState(null);
+  
+  // Reset selected card when entering draw phase
+  React.useEffect(() => {
+    if (phase === 'draw') {
+      setSelectedCardIndex(null);
+    }
+  }, [phase]);
+
+  const handleCardClick = (cardIndex) => {
+    if (phase === 'draw' && deck.length > 0) {
+      setSelectedCardIndex(cardIndex);
+      // Wait for flip animation then draw
+      setTimeout(() => {
+        moves.drawCard();
+      }, 600);
+    }
+  };
 
   const handleDrawCard = () => {
     if (phase === 'draw') {
@@ -17,53 +36,44 @@ const Board = ({ G, moves }) => {
     }
   };
 
+  const handleUseAdjustment = (adjustmentKey) => {
+    if (phase === 'adjust' && !usedAdjustmentThisTurn && adjustmentsLeft > 0) {
+      moves.useAdjustment(adjustmentKey);
+    }
+  };
+
+  const handleSkipAdjustment = () => {
+    if (phase === 'adjust') {
+      moves.skipAdjustment();
+    }
+  };
+
   const handleNextTurn = () => {
     if (phase === 'result') {
       moves.nextTurn();
     }
   };
 
-  // Options data
-  const options = {
+  // Adjustments data (cho việc điều chỉnh có giới hạn)
+  const adjustments = {
     A: { 
-      name: 'Dung hòa', 
-      effects: { LM: 1, CB: 1, ON: -1 },
-      description: 'Tạo sự hòa giải giữa các bên',
-      color: '#3498db'
+      name: 'Điều chỉnh phân phối', 
+      effects: { CB: 2, DK: -1, ON: 0 },
+      description: 'CB +2, ĐK -1',
+      color: '#9b59b6'
     },
     B: { 
-      name: 'Ưu tiên', 
-      effects: { LM: -1, CB: 2, ON: 0 },
-      description: 'Ưu tiên giải quyết lợi ích một nhóm',
-      color: '#f39c12'
+      name: 'Củng cố liên minh giai cấp', 
+      effects: { DK: 2, CB: -1, ON: 0 },
+      description: 'ĐK +2, CB -1',
+      color: '#1abc9c'
     },
     C: { 
-      name: 'Áp đặt', 
-      effects: { LM: -1, CB: -1, ON: 2 },
-      description: 'Áp đặt quyết định từ trên xuống',
-      color: '#e74c3c'
+      name: 'Điều tiết ý thức', 
+      effects: { CB: 1, DK: 1, ON: -1 },
+      description: 'CB +1, ĐK +1, ỔN -1',
+      color: '#e67e22'
     },
-  };
-
-  // Tính toán bonus cho options dựa vào nhóm thẻ
-  const getOptionEffects = (optionKey) => {
-    if (!currentCard) return options[optionKey].effects;
-    
-    const baseEffects = { ...options[optionKey].effects };
-    const card = currentCard;
-    
-    // Áp dụng hệ số nhóm thẻ
-    if (card.group === 'A' && baseEffects.CB !== 0) {
-      baseEffects.CB += baseEffects.CB > 0 ? 1 : -1;
-    }
-    if (card.group === 'B' && baseEffects.LM !== 0) {
-      baseEffects.LM += baseEffects.LM > 0 ? 1 : -1;
-    }
-    if (card.group === 'C' && baseEffects.ON !== 0) {
-      baseEffects.ON += baseEffects.ON > 0 ? 1 : -1;
-    }
-    
-    return baseEffects;
   };
 
   const formatEffect = (value) => {
@@ -71,109 +81,209 @@ const Board = ({ G, moves }) => {
     return value.toString();
   };
 
+  // Hiển thị tên trạng thái lệch
+  const getImbalanceText = () => {
+    if (imbalanceState === 'LI') return '⚠️ LỆCH LỢI ÍCH';
+    if (imbalanceState === 'HTLM') return '⚠️ LỆCH HÌNH THỨC LIÊN MINH';
+    if (imbalanceState === 'ODBN') return '⚠️ ỔN ĐỊNH BỀ NGOÀI';
+    return '';
+  };
+
   return (
     <div className="game-board">
       {/* Header - Game Info */}
       <div className="game-header">
-        <div className="turn-info">
-          <h1>🏛️ CHUYỂN ĐỔI XÃ HỘI CHỦ NGHĨA</h1>
-          <div className="turn-display">
-            <span className="turn-number">Lượt {currentTurn}/10</span>
-            {isImbalanced && (
-              <span className="imbalance-warning">⚠️ TRẬN PHÁP LỆCH</span>
-            )}
-          </div>
-        </div>
-        
-        <div className="deck-info">
-          <div className="deck-icon">🎴</div>
-          <div>Còn lại: {deck.length} thẻ</div>
-        </div>
-      </div>
-
-      {/* Main Layout: Left Sidebar + Center Board + Right Sidebar */}
-      <div className="game-layout">
-        {/* Left Sidebar - Deck Area */}
-        <div className="left-sidebar">
-          <div className="deck-area">
-            <h3>BỘ BÀI</h3>
-            <div className="deck-stack">
-              {deck.length > 0 ? (
-                <>
-                  <div className="card-back-large">
-                    <span className="deck-count">{deck.length}</span>
-                    <span className="deck-icon-large">🎴</span>
-                  </div>
-                  {phase === 'draw' && (
-                    <button 
-                      className="btn-draw-inline"
-                      onClick={handleDrawCard}
-                    >
-                      Rút thẻ
-                    </button>
-                  )}
-                </>
-              ) : (
-                <div className="deck-empty">Hết bài</div>
-              )}
+        <div className="header-left">
+          <div className="header-stats-row">
+            <div className="stat-card">
+              <span className="stat-icon">⚖️</span>
+              <div className="stat-content">
+                <span className="stat-label">CB</span>
+                <span className="stat-value">{indicators.CB}/10</span>
+              </div>
+            </div>
+            <div className="stat-card">
+              <span className="stat-icon">🤝</span>
+              <div className="stat-content">
+                <span className="stat-label">ĐK</span>
+                <span className="stat-value">{indicators.DK}/10</span>
+              </div>
+            </div>
+            <div className="stat-card">
+              <span className="stat-icon">🏛️</span>
+              <div className="stat-content">
+                <span className="stat-label">ỔN</span>
+                <span className="stat-value">{indicators.ON}/10</span>
+              </div>
             </div>
           </div>
         </div>
 
+        <div className="header-center">
+          <div className="turn-section">
+            <div className="turn-line"></div>
+            <div className="turn-circle">
+              <div className="turn-circle-inner">
+                <span className="turn-current">{currentTurn}</span>
+                <span className="turn-divider">/</span>
+                <span className="turn-total">12</span>
+              </div>
+            </div>
+            <div className="turn-line"></div>
+          </div>
+        </div>
+        
+        <div className="header-right">
+          <div className="header-info-group">
+            <div className="info-item">
+              <span className="info-icon">🎴</span>
+              <span className="info-value">{deck.length}</span>
+            </div>
+            <div className="info-item">
+              <span className="info-icon">🔧</span>
+              <span className="info-value">{adjustmentsLeft}/3</span>
+            </div>
+            <button className="settings-button" onClick={() => setShowGuide(true)}>
+              ⚙️
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {imbalanceState !== 'none' && (
+        <div className="imbalance-banner">
+          <span className="imbalance-icon">⚠️</span>
+          <span className="imbalance-text">{getImbalanceText()}</span>
+        </div>
+      )}
+
+      {/* Main Game Layout - Centered */}
+      <div className="game-layout">
+        
         {/* Center Board - Main Game Area */}
         <div className="center-board">
           <div className="board-frame">
             <div className="board-content">
               
-              {/* Draw Phase */}
-              {phase === 'draw' && (
-                <div className="draw-phase-center">
-                  <div className="phase-icon">🎴</div>
-                  <h2>Rút thẻ tình huống</h2>
-                  <p>Nhấn nút "Rút thẻ" bên trái để bắt đầu lượt chơi</p>
-                </div>
-              )}
-
-              {/* Choose Phase */}
-              {phase === 'choose' && currentCard && (
-                <div className="choose-phase-center">
-                  <div className="situation-header">
-                    <span className="group-badge">Nhóm {currentCard.group}</span>
-                    <h2>{currentCard.title}</h2>
-                    <p className="situation-desc">{currentCard.description}</p>
-                  </div>
-
-                  <div className="options-grid">
-                    {['A', 'B', 'C'].map(key => {
-                      const option = options[key];
-                      const effects = getOptionEffects(key);
+              {/* Card backs - visible in both draw and choose phase */}
+              {(phase === 'draw' || phase === 'choose') && (
+                <>
+                  {/* Option buttons - always visible on the left */}
+                  <div className="options-buttons-left">
+                    {['A', 'B', 'C'].map((key) => {
+                      const displayData = adjustments[key];
+                      const effects = displayData?.effects || {};
+                      const isClickable = currentCard && phase === 'choose';
                       
                       return (
-                        <div 
-                          key={key} 
-                          className="option-card-compact"
-                          onClick={() => handleChooseOption(key)}
-                          style={{borderColor: option.color}}
+                        <button
+                          key={key}
+                          className="option-btn-vertical"
+                          style={{ backgroundColor: displayData?.color || '#666' }}
+                          onClick={() => {
+                            if (isClickable) {
+                              handleChooseOption(key);
+                            }
+                          }}
+                          disabled={!isClickable}
                         >
-                          <div className="option-header-compact" style={{backgroundColor: option.color}}>
-                            <span className="option-letter">{key}</span>
-                            <span className="option-name">{option.name}</span>
+                          <div className="option-btn-header">
+                            <span className="option-btn-letter">{key}</span>
+                            <span className="option-btn-name">{displayData?.name || ''}</span>
                           </div>
-                          <div className="option-effects-compact">
-                            <span className={effects.LM > 0 ? 'positive' : effects.LM < 0 ? 'negative' : 'neutral'}>
-                              🤝 {formatEffect(effects.LM)}
-                            </span>
+                          <div className="option-btn-effects">
                             <span className={effects.CB > 0 ? 'positive' : effects.CB < 0 ? 'negative' : 'neutral'}>
-                              ⚖️ {formatEffect(effects.CB)}
+                              ⚖️ {formatEffect(effects.CB || 0)}
+                            </span>
+                            <span className={effects.DK > 0 ? 'positive' : effects.DK < 0 ? 'negative' : 'neutral'}>
+                              🤝 {formatEffect(effects.DK || 0)}
                             </span>
                             <span className={effects.ON > 0 ? 'positive' : effects.ON < 0 ? 'negative' : 'neutral'}>
-                              🏛️ {formatEffect(effects.ON)}
+                              🏛️ {formatEffect(effects.ON || 0)}
                             </span>
                           </div>
-                        </div>
+                        </button>
                       );
                     })}
                   </div>
+
+                  {/* Center area with banner and cards */}
+                  <div className="choose-phase-center">
+                    <div className="card-selection-prompt">
+                      {phase === 'draw' ? 'Người chơi chọn thẻ' : 'Chọn phương án xử lý'}
+                    </div>
+
+                    <div className="options-fan">
+                    {/* Card backs only (all face down) */}
+                    {[0, 1, 2, 3, 4, 5].map((index) => (
+                        <div 
+                          key={`back-${index}`}
+                          className={`card-back card-${index} ${phase === 'draw' && selectedCardIndex === index ? 'card-selected' : ''} ${phase === 'draw' ? 'card-clickable' : ''}`}
+                          style={{
+                            '--card-index': index
+                          }}
+                          onClick={() => handleCardClick(index)}
+                        >
+                          <div className="card-back-inner">
+                            <div className="card-pattern">
+                              <div className="pattern-center">◆</div>
+                              <div className="pattern-corner tl">✦</div>
+                              <div className="pattern-corner tr">✦</div>
+                              <div className="pattern-corner bl">✦</div>
+                              <div className="pattern-corner br">✦</div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+                </>
+              )}
+
+              {/* Adjust Phase - Điều chỉnh có giới hạn */}
+              {phase === 'adjust' && (
+                <div className="adjust-phase-center">
+                  <div className="phase-icon">🔧</div>
+                  <h2>Điều chỉnh chủ thể</h2>
+                  <p className="adjust-desc">Bạn có {adjustmentsLeft} lần điều chỉnh còn lại (tối đa 1 lần/lượt)</p>
+                  
+                  {!usedAdjustmentThisTurn && adjustmentsLeft > 0 ? (
+                    <div className="adjustments-grid">
+                      {['A', 'B', 'C'].map(key => {
+                        const adj = adjustments[key];
+                        
+                        return (
+                          <div 
+                            key={key} 
+                            className="adjustment-card"
+                            onClick={() => handleUseAdjustment(key)}
+                            style={{borderColor: adj.color}}
+                          >
+                            <div className="adjustment-header" style={{backgroundColor: adj.color}}>
+                              <span className="adjustment-letter">{key}</span>
+                              <span className="adjustment-name">{adj.name}</span>
+                            </div>
+                            <div className="adjustment-desc">{adj.description}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="no-adjustment">
+                      {usedAdjustmentThisTurn ? (
+                        <p>✅ Đã sử dụng điều chỉnh trong lượt này</p>
+                      ) : (
+                        <p>❌ Đã hết lượt điều chỉnh</p>
+                      )}
+                    </div>
+                  )}
+
+                  <button 
+                    className="btn btn-skip"
+                    onClick={handleSkipAdjustment}
+                  >
+                    ➡️ Tiếp tục
+                  </button>
                 </div>
               )}
 
@@ -183,17 +293,21 @@ const Board = ({ G, moves }) => {
                   <div className="phase-icon">✅</div>
                   <h2>Quyết định đã được thực hiện</h2>
                   <p>Các chỉ số xã hội đã được cập nhật</p>
-                  {isImbalanced && (
+                  {imbalanceState !== 'none' && (
                     <div className="imbalance-alert-compact">
-                      <strong>⚠️ Trận pháp lệch!</strong>
-                      <p>Chỉ số cao nhất sẽ giảm 1 điểm mỗi lượt</p>
+                      <strong>{getImbalanceText()}</strong>
+                      <p>
+                        {imbalanceState === 'LI' && 'Mỗi lượt ĐK -1. Thoát khi CB ≤ 4 và ĐK ≥ 2'}
+                        {imbalanceState === 'HTLM' && 'Mỗi lượt CB -1. Thoát khi CB ≥ 2 và ĐK ≤ 4'}
+                        {imbalanceState === 'ODBN' && 'Mỗi lượt CB/ĐK -1. Thoát khi CB ≥ 2 và ĐK ≥ 2'}
+                      </p>
                     </div>
                   )}
                   <button 
                     className="btn btn-next"
                     onClick={handleNextTurn}
                   >
-                    {currentTurn < 10 ? '➡️ Lượt tiếp theo' : '🏁 Xem kết quả'}
+                    {currentTurn < 12 ? '➡️ Lượt tiếp theo' : '🏁 Xem kết quả'}
                   </button>
                 </div>
               )}
@@ -222,84 +336,91 @@ const Board = ({ G, moves }) => {
             </div>
           ) : null}
         </div>
+      </div>
 
-        {/* Right Sidebar - Info Panels */}
-        <div className="right-sidebar">
-          <div className="info-box">
-            <h4>📊 SYMBOLS</h4>
-            <div className="symbol-list">
-              <div className="symbol-item">🤝 Liên minh</div>
-              <div className="symbol-item">⚖️ Cân bằng</div>
-              <div className="symbol-item">🏛️ Ổn định</div>
+      {/* Guide Modal */}
+      {showGuide && (
+        <div className="guide-overlay" onClick={() => setShowGuide(false)}>
+          <div className="guide-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="guide-header">
+              <h2>📖 HƯỚNG DẪN CHƠI</h2>
+              <button className="guide-close" onClick={() => setShowGuide(false)}>✕</button>
             </div>
-          </div>
+            
+            <div className="guide-content">
+              <div className="guide-section">
+                <h3>📊 CHỈ SỐ</h3>
+                <div className="guide-items">
+                  <div className="guide-item">⚖️ <strong>Công bằng (CB)</strong> - Quan hệ lợi ích giữa lao động – tư bản – nhà nước</div>
+                  <div className="guide-item">🤝 <strong>Đoàn kết (ĐK)</strong> - Mức đồng thuận giữa các giai cấp, tầng lớp</div>
+                  <div className="guide-item">🏛️ <strong>Ổn định (ỔN)</strong> - Khả năng duy trì trật tự xã hội XHCN</div>
+                </div>
+              </div>
 
-          <div className="info-box">
-            <h4>📖 TURN STEPS</h4>
-            <ol className="steps-list">
-              <li className={phase === 'draw' ? 'active' : ''}>
-                <strong>DRAW:</strong> Rút thẻ
-              </li>
-              <li className={phase === 'choose' ? 'active' : ''}>
-                <strong>CHOOSE:</strong> Chọn phương án
-              </li>
-              <li className={phase === 'result' ? 'active' : ''}>
-                <strong>RESULT:</strong> Xem kết quả
-              </li>
-            </ol>
-          </div>
+              <div className="guide-section">
+                <h3>🎮 TURN STEPS</h3>
+                <ol className="guide-steps">
+                  <li className={phase === 'draw' ? 'active' : ''}><strong>DRAW:</strong> Rút thẻ tình huống</li>
+                  <li className={phase === 'choose' ? 'active' : ''}><strong>CHOOSE:</strong> Chọn phương án xử lý</li>
+                  <li className={phase === 'adjust' ? 'active' : ''}><strong>ADJUST:</strong> Điều chỉnh (tối đa 3 lần/game)</li>
+                  <li className={phase === 'result' ? 'active' : ''}><strong>RESULT:</strong> Xem kết quả và chuyển lượt</li>
+                </ol>
+              </div>
 
-          <div className="info-box">
-            <h4>🎯 NHÓM THẺ</h4>
-            <div className="group-info">
-              <div><strong>A:</strong> Khuếch đại CB</div>
-              <div><strong>B:</strong> Khuếch đại LM</div>
-              <div><strong>C:</strong> Khuếch đại ON</div>
+              <div className="guide-section">
+                <h3>🎯 NHÓM THẺ</h3>
+                <div className="guide-items">
+                  <div className="guide-item"><strong>Nhóm A:</strong> Khuếch đại tác động lên CB (+1 điểm)</div>
+                  <div className="guide-item"><strong>Nhóm B:</strong> Khuếch đại tác động lên ĐK (+1 điểm)</div>
+                  <div className="guide-item"><strong>Nhóm C:</strong> Khuếch đại tác động lên ỔN (+1 điểm)</div>
+                </div>
+              </div>
+
+              <div className="guide-section">
+                <h3>⚠️ TRẠNG THÁI LỆCH CƠ CẤU</h3>
+                <div className="guide-items">
+                  <div className="guide-item imbalance-li">
+                    <strong>LỆCH LỢI ÍCH (LI):</strong> CB ≥4 và ĐK ≤1<br/>
+                    • Mỗi lần tăng CB → +0<br/>
+                    • Mỗi lượt: ĐK -1<br/>
+                    • Thoát: CB ≤4 và ĐK ≥2
+                  </div>
+                  <div className="guide-item imbalance-htlm">
+                    <strong>LỆCH HÌNH THỨC LIÊN MINH (HTLM):</strong> ĐK ≥4 và CB ≤1<br/>
+                    • Mỗi lần tăng ĐK → +0<br/>
+                    • Mỗi lượt: CB -1<br/>
+                    • Thoát: CB ≥2 và ĐK ≤4
+                  </div>
+                  <div className="guide-item imbalance-odbn">
+                    <strong>ỔN ĐỊNH BỀ NGOÀI (ODBN):</strong> ỔN ≥4 và (CB ≤1 hoặc ĐK ≤1)<br/>
+                    • Không được tăng ỔN bằng điều chỉnh<br/>
+                    • Mỗi lượt: CB -1 hoặc ĐK -1<br/>
+                    • Thoát: CB ≥2 và ĐK ≥2
+                  </div>
+                </div>
+              </div>
+
+              <div className="guide-section">
+                <h3>🏆 ENDINGS</h3>
+                <div className="guide-items">
+                  <div className="guide-item ending-perfect">
+                    <strong>ENDING 1 - PHÁT TRIỂN HÀI HÒA:</strong> CB ≥4, ĐK ≥4, ỔN ≥4, không lệch
+                  </div>
+                  <div className="guide-item ending-stable">
+                    <strong>ENDING 2 - ỔN ĐỊNH TƯƠNG ĐỐI:</strong> ỔN ≥3, CB ≥2, ĐK ≥2, không lệch
+                  </div>
+                  <div className="guide-item ending-formal">
+                    <strong>ENDING 3 - ỔN ĐỊNH HÌNH THỨC:</strong> ỔN ≥4, đang ở trạng thái lệch
+                  </div>
+                  <div className="guide-item ending-crisis">
+                    <strong>ENDING 4 - KHỦNG HOẢNG CƠ CẤU:</strong> ỔN = 0 hoặc CB ≤1 và ĐK ≤1
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Bottom - Indicators Area */}
-      <div className="bottom-indicators">
-        <div className="indicators-row">
-          <div className="indicator">
-            <div className="indicator-header">
-              <span className="indicator-icon">🤝</span>
-              <span className="indicator-name">LIÊN MINH</span>
-            </div>
-            <div className="indicator-bar-container">
-              <div className="indicator-bar" style={{width: `${(indicators.LM / 7) * 100}%`, backgroundColor: '#3498db'}}>
-                <span className="indicator-value">{indicators.LM}/7</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="indicator">
-            <div className="indicator-header">
-              <span className="indicator-icon">⚖️</span>
-              <span className="indicator-name">CÂN BẰNG</span>
-            </div>
-            <div className="indicator-bar-container">
-              <div className="indicator-bar" style={{width: `${(indicators.CB / 7) * 100}%`, backgroundColor: '#27ae60'}}>
-                <span className="indicator-value">{indicators.CB}/7</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="indicator">
-            <div className="indicator-header">
-              <span className="indicator-icon">🏛️</span>
-              <span className="indicator-name">ỔN ĐỊNH</span>
-            </div>
-            <div className="indicator-bar-container">
-              <div className="indicator-bar" style={{width: `${(indicators.ON / 7) * 100}%`, backgroundColor: '#e67e22'}}>
-                <span className="indicator-value">{indicators.ON}/7</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      )}
 
       {/* Game Over - Ending */}
       {ending && (
@@ -308,16 +429,16 @@ const Board = ({ G, moves }) => {
             <h1 style={{color: ending.color}}>{ending.title}</h1>
             <div className="final-scores">
               <div className="final-score">
-                <span className="score-label">🤝 Liên minh:</span>
-                <span className="score-value">{indicators.LM}/7</span>
+                <span className="score-label">⚖️ Công bằng:</span>
+                <span className="score-value">{indicators.CB}/10</span>
               </div>
               <div className="final-score">
-                <span className="score-label">⚖️ Cân bằng:</span>
-                <span className="score-value">{indicators.CB}/7</span>
+                <span className="score-label">🤝 Đoàn kết:</span>
+                <span className="score-value">{indicators.DK}/10</span>
               </div>
               <div className="final-score">
                 <span className="score-label">🏛️ Ổn định:</span>
-                <span className="score-value">{indicators.ON}/7</span>
+                <span className="score-value">{indicators.ON}/10</span>
               </div>
             </div>
             <p className="ending-message">{ending.message}</p>
